@@ -7,7 +7,21 @@
 # General application configuration
 import Config
 
+config :goprint_registry, :scopes,
+  user: [
+    default: true,
+    module: GoprintRegistry.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: GoprintRegistry.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :goprint_registry,
+  ecto_repos: [GoprintRegistry.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
@@ -26,20 +40,21 @@ config :esbuild,
   version: "0.25.4",
   goprint_registry: [
     args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "4.1.7",
+  version: "3.4.14",
   goprint_registry: [
     args: ~w(
-      --input=assets/css/app.css
-      --output=priv/static/assets/css/app.css
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
     ),
-    cd: Path.expand("..", __DIR__)
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # Configures Elixir's Logger
@@ -49,6 +64,21 @@ config :logger, :default_formatter,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# Configure Ueberauth
+config :ueberauth, Ueberauth,
+  providers: [
+    github: {Ueberauth.Strategy.Github, [default_scope: "user:email"]},
+    google: {Ueberauth.Strategy.Google, [default_scope: "email profile"]}
+  ]
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET")
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

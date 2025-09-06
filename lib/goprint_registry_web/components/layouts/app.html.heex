@@ -1,0 +1,310 @@
+<div class="h-full bg-white dark:bg-gray-800">
+  <%= if assigns[:current_scope] && @current_scope.user do %>
+    <!-- Mobile sidebar backdrop -->
+    <div
+      id="mobile-menu-backdrop"
+      class="fixed inset-0 z-50 bg-gray-900/80 lg:hidden hidden"
+      aria-hidden="true"
+      phx-click={
+        JS.hide(to: "#mobile-menu-backdrop")
+        |> JS.hide(to: "#mobile-sidebar")
+        |> JS.remove_class("overflow-hidden", to: "body")
+      }
+    >
+    </div>
+    
+<!-- Static sidebar for desktop -->
+    <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+      <!-- Sidebar component -->
+      <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4 dark:border-white/10 dark:bg-gray-800">
+        <div class="flex h-16 shrink-0 items-center">
+          <.link navigate="/dashboard" class="flex items-center gap-2">
+            <img src="/images/go-logo.png" alt="GO" class="h-10 w-auto">
+            <span class="text-xl font-bold text-gray-900 dark:text-white">Print</span>
+          </.link>
+          
+          <%= if Application.get_env(:goprint_registry, :environment) in [:dev, :staging] do %>
+            <span class={"ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium " <> 
+                        if Application.get_env(:goprint_registry, :environment) == :dev do
+                          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                        else
+                          "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                        end}>
+              <%= String.upcase(to_string(Application.get_env(:goprint_registry, :environment))) %>
+            </span>
+          <% end %>
+        </div>
+        
+<!-- Navigation menu -->
+        <.sidebar_nav current_user={@current_scope.user} />
+      </div>
+    </div>
+    
+<!-- Mobile sidebar -->
+    <div
+      id="mobile-sidebar"
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 lg:hidden dark:bg-gray-800 dark:border-gray-700 hidden -translate-x-full transition-transform duration-300"
+      aria-label="Sidebar"
+    >
+      <div class="flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
+        <.link navigate="/dashboard" class="flex items-center gap-2">
+          <img src="/images/go-logo.png" alt="GO" class="h-10 w-auto">
+          <span class="text-xl font-bold text-gray-900 dark:text-white">Print</span>
+        </.link>
+        
+        <%= if Application.get_env(:goprint_registry, :environment) in [:dev, :staging] do %>
+          <span class={"ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium " <> 
+                      if Application.get_env(:goprint_registry, :environment) == :dev do
+                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                      else
+                        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                      end}>
+            <%= String.upcase(to_string(Application.get_env(:goprint_registry, :environment))) %>
+          </span>
+        <% end %>
+        
+<!-- Close button -->
+        <button
+          phx-click={
+            JS.hide(to: "#mobile-menu-backdrop")
+            |> JS.hide(to: "#mobile-sidebar")
+            |> JS.remove_class("overflow-hidden", to: "body")
+          }
+          class="ml-auto -m-2.5 p-2.5 text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        >
+          <span class="sr-only">Close sidebar</span>
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
+        <.sidebar_nav current_user={@current_scope.user} mobile={true} />
+      </div>
+    </div>
+    
+<!-- Main content wrapper -->
+    <div class="lg:pl-64">
+      <!-- Top navigation bar -->
+      <div class="sticky top-0 z-40 lg:mx-auto lg:max-w-6xl lg:px-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex h-14 items-center gap-x-4 bg-white px-4 sm:gap-x-6 sm:px-6 lg:px-0 dark:bg-gray-800">
+          <!-- Mobile menu button -->
+          <button
+            phx-click={
+              JS.show(to: "#mobile-menu-backdrop")
+              |> JS.show(
+                to: "#mobile-sidebar",
+                transition:
+                  {"transition-transform duration-300", "-translate-x-full", "translate-x-0"}
+              )
+              |> JS.add_class("overflow-hidden", to: "body")
+            }
+            type="button"
+            class="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-controls="mobile-sidebar"
+          >
+            <span class="sr-only">Open sidebar</span>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                clip-rule="evenodd"
+              >
+              </path>
+            </svg>
+          </button>
+          
+<!-- Separator -->
+          <div aria-hidden="true" class="h-6 w-px bg-gray-200 lg:hidden dark:bg-gray-700"></div>
+          
+<!-- Search bar -->
+          <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <!-- Search bar placeholder -->
+            <div class="flex-1"></div>
+            
+<!-- Right side items -->
+            <div class="flex items-center gap-x-4 lg:gap-x-6">
+              <!-- Notifications dropdown -->
+              <div class="relative">
+                <button
+                  phx-click={
+                    JS.toggle(
+                      to: "#notification-menu",
+                      in:
+                        {"transition ease-out duration-100", "opacity-0 scale-95",
+                         "opacity-100 scale-100"},
+                      out:
+                        {"transition ease-in duration-75", "opacity-100 scale-100",
+                         "opacity-0 scale-95"}
+                    )
+                  }
+                  type="button"
+                  class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors duration-200"
+                  aria-haspopup="true"
+                >
+                  <span class="sr-only">View notifications</span>
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z">
+                    </path>
+                  </svg>
+                </button>
+                
+<!-- Notification dropdown menu -->
+                <div
+                  id="notification-menu"
+                  class="absolute right-0 top-full mt-2 w-80 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700 dark:ring-gray-600 z-50 hidden"
+                  role="menu"
+                  aria-orientation="vertical"
+                  phx-click-away={JS.hide(to: "#notification-menu")}
+                >
+                  <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">Notifications</p>
+                  </div>
+                  <div class="py-1">
+                    <p class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                      No new notifications
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+<!-- Separator -->
+              <div
+                aria-hidden="true"
+                class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:lg:bg-white/10"
+              >
+              </div>
+
+<!-- Dark mode toggle -->
+              <GoprintRegistryWeb.Components.DarkModeToggle.dark_mode_toggle />
+              
+<!-- Separator -->
+              <div
+                aria-hidden="true"
+                class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:lg:bg-white/10"
+              >
+              </div>
+              
+<!-- User menu dropdown -->
+              <div class="relative">
+                <button
+                  phx-click={
+                    JS.toggle(
+                      to: "#user-menu",
+                      in:
+                        {"transition ease-out duration-100", "opacity-0 scale-95",
+                         "opacity-100 scale-100"},
+                      out:
+                        {"transition ease-in duration-75", "opacity-100 scale-100",
+                         "opacity-0 scale-95"}
+                    )
+                  }
+                  type="button"
+                  class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 rounded-lg transition-colors duration-200"
+                  aria-haspopup="true"
+                >
+                  <span class="sr-only">Open user menu</span>
+                  <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span class="text-sm font-medium text-primary-600">
+                      {String.first(@current_scope.user.email) |> String.upcase()}
+                    </span>
+                  </div>
+                  <span class="hidden lg:flex lg:items-center">
+                    <span class="ml-4 text-sm/6 font-semibold text-gray-900 dark:text-white">
+                      {@current_scope.user.email
+                        |> String.split("@")
+                        |> List.first()
+                        |> String.capitalize()}
+                    </span>
+                    <svg
+                      class="ml-2 w-5 h-5 text-gray-400 transition-transform duration-200"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      >
+                      </path>
+                    </svg>
+                  </span>
+                </button>
+                
+<!-- User dropdown menu -->
+                <div
+                  id="user-menu"
+                  class="absolute right-0 top-full mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700 dark:divide-gray-600 dark:ring-gray-600 z-50 hidden"
+                  role="menu"
+                  aria-orientation="vertical"
+                  phx-click-away={JS.hide(to: "#user-menu")}
+                >
+                  <div class="py-3 px-4">
+                    <span class="block text-sm font-semibold text-gray-900 dark:text-white">
+                      {@current_scope.user.email
+                        |> String.split("@")
+                        |> List.first()
+                        |> String.capitalize()}
+                    </span>
+                    <span class="block text-sm text-gray-500 truncate dark:text-gray-400">
+                      {@current_scope.user.email}
+                    </span>
+                  </div>
+                  <div class="py-1">
+                    <.link
+                      navigate="/users/settings"
+                      class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-200"
+                      role="menuitem"
+                    >
+                      Account settings
+                    </.link>
+                  </div>
+                  <div class="py-1">
+                    <.link
+                      href="/users/log-out"
+                      method="delete"
+                      class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-200"
+                      role="menuitem"
+                    >
+                      Sign out
+                    </.link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+<!-- Main content -->
+      <main>
+        <!-- Flash messages -->
+        <.flash_group flash={@flash} />
+        
+<!-- Page content -->
+        <%= if assigns[:inner_block] do %>
+          <%= render_slot(@inner_block) %>
+        <% else %>
+          <%= @inner_content %>
+        <% end %>
+      </main>
+    </div>
+  <% else %>
+    <!-- Non-authenticated layout -->
+    <main>
+      <.flash_group flash={@flash} />
+      <%= if assigns[:inner_block] do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= @inner_content %>
+      <% end %>
+    </main>
+  <% end %>
+</div>

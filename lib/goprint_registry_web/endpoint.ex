@@ -15,6 +15,14 @@ defmodule GoprintRegistryWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  # WebSocket endpoint for desktop clients
+  socket "/ws", GoprintRegistryWeb.DesktopSocket,
+    websocket: [
+      check_origin: false,
+      compress: true
+    ],
+    longpoll: false
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),

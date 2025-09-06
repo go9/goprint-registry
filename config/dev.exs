@@ -9,7 +9,7 @@ import Config
 config :goprint_registry, GoprintRegistryWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
+  http: [ip: {127, 0, 0, 1}, port: 4002],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -73,3 +73,21 @@ config :phoenix_live_view,
   debug_attributes: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
+
+# Configure your database - LOCAL PostgreSQL for development
+config :goprint_registry, GoprintRegistry.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  port: 5555,
+  database: "goprint_registry_dev",
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
+# Configure Swoosh for local email development
+config :goprint_registry, GoprintRegistry.Mailer,
+  adapter: Swoosh.Adapters.Local
+
+# Disable Swoosh API client as it is only required for production adapters
+config :swoosh, :api_client, false

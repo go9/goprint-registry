@@ -1,0 +1,295 @@
+<div class="px-4 sm:px-6 lg:px-8 py-8">
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Clients</h1>
+      <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+        Manage your connected GoPrint clients and test printing functionality
+      </p>
+    </div>
+  </div>
+
+  <!-- Add Client Form -->
+  <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+        Add New Client
+      </h3>
+      <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+        <p>Enter the API key from your GoPrint desktop client to register it with your account.</p>
+      </div>
+      <.form for={@add_client_form} phx-submit="add_client" class="mt-5 sm:flex sm:items-center">
+        <div class="w-full sm:max-w-xs">
+          <label for="api_key" class="sr-only">API Key</label>
+          <input
+            type="text"
+            name="add_client[api_key]"
+            id="api_key"
+            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="gp_..."
+            value={@add_client_form.params["api_key"]}
+          />
+        </div>
+        <button
+          type="submit"
+          class="mt-3 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
+        >
+          Add Client
+        </button>
+      </.form>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mt-6 flex flex-col sm:flex-row gap-4">
+    <!-- Search -->
+    <.form for={%{}} phx-change="search" class="flex-1">
+      <div class="relative">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          name="search[query]"
+          value={@search_query}
+          placeholder="Search by API key, name, or client ID..."
+          class="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        />
+      </div>
+    </.form>
+
+    <!-- Status Filter -->
+    <div class="flex gap-2">
+      <button
+        phx-click="filter_status"
+        phx-value-status="all"
+        class={"px-4 py-2 text-sm font-medium rounded-md " <> if @filter_status == "all", do: "bg-indigo-600 text-white", else: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"}
+      >
+        All
+      </button>
+      <button
+        phx-click="filter_status"
+        phx-value-status="connected"
+        class={"px-4 py-2 text-sm font-medium rounded-md " <> if @filter_status == "connected", do: "bg-green-600 text-white", else: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"}
+      >
+        Connected
+      </button>
+      <button
+        phx-click="filter_status"
+        phx-value-status="disconnected"
+        class={"px-4 py-2 text-sm font-medium rounded-md " <> if @filter_status == "disconnected", do: "bg-gray-600 text-white", else: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"}
+      >
+        Disconnected
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
+                  Client ID
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  API Name
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  API Key
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  Status
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  Printers
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  Last Connected
+                </th>
+                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-900 dark:divide-gray-800">
+              <%= for client <- @clients do %>
+                <tr>
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
+                    <%= client.client_id %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= client.api_name || "-" %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
+                    <%= String.slice(client.api_key || "", 0..7) %>...
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm">
+                    <%= if client.status == "connected" do %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        <svg class="mr-1 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="3" />
+                        </svg>
+                        Connected
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                        <svg class="mr-1 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="3" />
+                        </svg>
+                        Disconnected
+                      </span>
+                    <% end %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= length(client.printers || []) %> printer(s)
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= if client.last_connected_at do %>
+                      <%= Calendar.strftime(client.last_connected_at, "%b %d, %Y %I:%M %p") %>
+                    <% else %>
+                      Never
+                    <% end %>
+                  </td>
+                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        phx-click="open_test_print"
+                        phx-value-id={client.id}
+                        disabled={client.status != "connected"}
+                        class={"text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 " <> if client.status != "connected", do: "opacity-50 cursor-not-allowed", else: ""}
+                      >
+                        Test Print
+                      </button>
+                      <button
+                        phx-click="delete_client"
+                        phx-value-id={client.id}
+                        data-confirm="Are you sure you want to remove this client?"
+                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+              <%= if @clients == [] do %>
+                <tr>
+                  <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                    No clients found
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Test Print Modal -->
+<%= if @show_test_print_modal && @selected_client do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" phx-click="close_test_print"></div>
+      
+      <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div>
+          <div class="mt-3 text-center sm:mt-0 sm:text-left">
+            <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
+              Test Print
+            </h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Send a test print to <%= @selected_client.client_id %>
+            </p>
+          </div>
+        </div>
+        
+        <.form for={@test_print_form} phx-change="validate_test_print" phx-submit="submit_test_print">
+          <div class="mt-4 space-y-4">
+            <!-- Printer Selection -->
+            <div>
+              <label for="printer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Select Printer
+              </label>
+              <select
+                name="test_print[printer_id]"
+                id="printer_id"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="">Choose a printer...</option>
+                <%= for printer <- (@selected_client.printers || []) do %>
+                  <option value={printer["id"]}>
+                    <%= printer["name"] %> - <%= printer["status"] %>
+                  </option>
+                <% end %>
+              </select>
+            </div>
+            
+            <!-- Paper Size -->
+            <div>
+              <label for="paper_size" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Paper Size
+              </label>
+              <select
+                name="test_print[paper_size]"
+                id="paper_size"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="A4">A4</option>
+                <option value="Letter">Letter</option>
+                <option value="Legal">Legal</option>
+                <option value="4x6">4x6 Label</option>
+                <option value="2x1">2x1 Label</option>
+                <option value="Receipt">Receipt (80mm)</option>
+              </select>
+            </div>
+            
+            <!-- Content -->
+            <div>
+              <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Test Content
+              </label>
+              <textarea
+                name="test_print[content]"
+                id="content"
+                rows="4"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              ><%= @test_print_form.params["content"] %></textarea>
+            </div>
+          </div>
+          
+          <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+            <button
+              type="submit"
+              class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2"
+            >
+              Send Test Print
+            </button>
+            <button
+              type="button"
+              phx-click="close_test_print"
+              class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </.form>
+        
+        <%= if @print_job_status do %>
+          <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+            <p class="text-sm text-blue-800 dark:text-blue-300">
+              Print job <%= @print_job_status.job_id %> status: <%= @print_job_status.status %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

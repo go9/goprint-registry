@@ -44,7 +44,13 @@ defmodule GoprintRegistry.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:lazy_html, ">= 0.1.0", only: :test},
+      {:phoenix_ecto, "~> 4.6"},
+      {:ecto_sql, "~> 3.12"},
+      {:postgrex, ">= 0.0.0"},
+      {:flop, "~> 0.26.0"},
+      {:flop_phoenix, "~> 0.25.0"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
@@ -59,7 +65,22 @@ defmodule GoprintRegistry.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      
+      # Authentication
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_github, "~> 0.8"},
+      {:ueberauth_google, "~> 0.10"},
+      
+      # Security
+      {:bcrypt_elixir, "~> 3.0"},
+      
+      # HTTP client for API calls
+      {:req, "~> 0.5"},
+      
+      # Email
+      {:swoosh, "~> 1.4"},
+      {:gen_smtp, "~> 1.0"}
     ]
   end
 
@@ -71,7 +92,10 @@ defmodule GoprintRegistry.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind goprint_registry", "esbuild goprint_registry"],
       "assets.deploy": [

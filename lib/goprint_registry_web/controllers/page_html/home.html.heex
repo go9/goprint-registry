@@ -1,265 +1,335 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-  <!-- Hero Section -->
-  <header class="container mx-auto px-6 py-8">
-    <nav class="flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-          <span class="text-white font-bold text-lg">GP</span>
+<div class="min-h-screen bg-white dark:bg-gray-900">
+  <!-- Header -->
+  <header class="border-b border-gray-200 dark:border-gray-700">
+    <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="flex items-center">
+              <!-- GO Logo -->
+              <img src="/images/go-logo.png" alt="GO" class="h-10 w-auto" />
+              <span class="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Print</span>
+            </div>
+          </div>
         </div>
-        <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          GoPrint
-        </span>
-      </div>
-      <div class="flex items-center space-x-6">
-        <a href="#features" class="text-gray-600 hover:text-gray-900 transition">Features</a>
-        <a href="#how-it-works" class="text-gray-600 hover:text-gray-900 transition">How It Works</a>
-        <a href="#download" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition">
-          Download
-        </a>
+        <div class="flex items-center space-x-4">
+          <a href="https://github.com/go9/goprint" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            GitHub
+          </a>
+          <a href="#docs" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            Documentation
+          </a>
+          <a href="#api" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            Get Started
+          </a>
+        </div>
       </div>
     </nav>
   </header>
 
-  <!-- Hero Content -->
-  <section class="container mx-auto px-6 py-16 text-center">
-    <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-      Silent Printing Made
-      <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Simple</span>
-    </h1>
-    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-      Transform your Mac into a powerful print server. Enable web applications to print labels, receipts, and documents silently to any local printer.
-    </p>
-    
-    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-      <a href="#download" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-lg font-semibold hover:shadow-xl transition transform hover:-translate-y-0.5">
-        Download for Mac
-      </a>
-      <a href="#how-it-works" class="px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-lg text-lg font-semibold hover:border-gray-400 transition">
-        View Documentation
-      </a>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-2xl p-2 max-w-4xl mx-auto">
-      <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-8">
-        <div class="grid grid-cols-3 gap-4 text-left">
-          <div class="bg-white rounded-lg p-4 shadow">
-            <div class="text-sm font-semibold text-gray-500 mb-1">Status</div>
-            <div class="flex items-center space-x-2">
-              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span class="text-gray-900">Online</span>
-            </div>
-          </div>
-          <div class="bg-white rounded-lg p-4 shadow">
-            <div class="text-sm font-semibold text-gray-500 mb-1">Service ID</div>
-            <div class="font-mono text-sm">gp_7f3b9c2a</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 shadow">
-            <div class="text-sm font-semibold text-gray-500 mb-1">Queue</div>
-            <div class="text-gray-900">0 jobs</div>
-          </div>
+  <!-- Hero -->
+  <div class="relative isolate overflow-hidden bg-white dark:bg-gray-900">
+    <div class="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
+      <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl lg:flex-shrink-0 lg:pt-8">
+        <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
+          Silent printing for web applications
+        </h1>
+        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+          Enable your web app to print directly to thermal, label, and receipt printers without browser dialogs. Perfect for warehouses, retail, and logistics.
+        </p>
+        <div class="mt-10 flex items-center gap-x-6">
+          <a href="#quick-start" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            Quick Start
+          </a>
+          <a href="https://github.com/go9/goprint" class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+            View on GitHub <span aria-hidden="true">→</span>
+          </a>
         </div>
       </div>
-    </div>
-  </section>
+      <div class="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
+        <div class="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
+          <div class="rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
+            <div class="rounded-lg bg-gray-900 p-4 text-gray-300 shadow-2xl ring-1 ring-white/10">
+              <pre class="text-sm leading-6"><code><%= raw("<span class='text-purple-400'>const</span> printer = <span class='text-blue-400'>new</span> <span class='text-yellow-400'>GoPrint</span>(<span class='text-green-400'>'gp_your_api_key'</span>);
 
-  <!-- Features Section -->
-  <section id="features" class="py-20 bg-white">
-    <div class="container mx-auto px-6">
-      <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">
-        Everything You Need for Silent Printing
-      </h2>
-      
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Secure API Keys</h3>
-          <p class="text-gray-600">Generate unique API keys for each application. Control access and revoke permissions anytime.</p>
-        </div>
-        
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Print Templates</h3>
-          <p class="text-gray-600">Configure paper sizes, margins, and printer settings once. Reuse templates across all your print jobs.</p>
-        </div>
-        
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Auto Discovery</h3>
-          <p class="text-gray-600">Web apps automatically find GoPrint on your network. No complex configuration needed.</p>
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8 mt-8">
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Queue Management</h3>
-          <p class="text-gray-600">Monitor print jobs in real-time. Retry failed jobs or cancel stuck prints with one click.</p>
-        </div>
-        
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Any Printer</h3>
-          <p class="text-gray-600">Works with thermal label printers, receipt printers, and standard printers. If macOS sees it, GoPrint can use it.</p>
-        </div>
-        
-        <div class="text-center">
-          <div class="w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Simple API</h3>
-          <p class="text-gray-600">Send HTML content via REST API. GoPrint handles the rest - no complex drivers or plugins needed.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How It Works -->
-  <section id="how-it-works" class="py-20 bg-gradient-to-br from-gray-50 to-white">
-    <div class="container mx-auto px-6">
-      <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">
-        How It Works
-      </h2>
-      
-      <div class="max-w-4xl mx-auto">
-        <div class="flex items-center mb-8">
-          <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-            1
-          </div>
-          <div class="ml-6">
-            <h3 class="text-xl font-semibold mb-2">Install GoPrint</h3>
-            <p class="text-gray-600">Download and run GoPrint on your Mac. It runs in the menu bar and starts automatically.</p>
-          </div>
-        </div>
-        
-        <div class="flex items-center mb-8">
-          <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-            2
-          </div>
-          <div class="ml-6">
-            <h3 class="text-xl font-semibold mb-2">Configure Templates</h3>
-            <p class="text-gray-600">Select your printer and set up paper sizes for labels, receipts, or documents.</p>
-          </div>
-        </div>
-        
-        <div class="flex items-center mb-8">
-          <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-            3
-          </div>
-          <div class="ml-6">
-            <h3 class="text-xl font-semibold mb-2">Generate API Key</h3>
-            <p class="text-gray-600">Copy your unique API key and add it to your web application's settings.</p>
-          </div>
-        </div>
-        
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold">
-            4
-          </div>
-          <div class="ml-6">
-            <h3 class="text-xl font-semibold mb-2">Start Printing</h3>
-            <p class="text-gray-600">Your web app can now send print jobs directly to your local printer - silently and reliably.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Code Example -->
-      <div class="mt-16 max-w-3xl mx-auto">
-        <h3 class="text-2xl font-semibold text-center mb-6">Simple Integration</h3>
-        <div class="bg-gray-900 rounded-xl p-6 text-white">
-          <pre class="text-sm overflow-x-auto"><code class="language-javascript"><%= raw("// Print from your web app
-const response = await fetch('http://localhost:9377/print', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer gp_your_api_key',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    template_id: 'label_template',
-    html: '<h1>Shipping Label</h1><p>Order #12345</p>'
-  })
+<span class='text-purple-400'>await</span> printer.<span class='text-yellow-400'>print</span>({
+  <span class='text-blue-300'>template</span>: <span class='text-green-400'>'shipping_label'</span>,
+  <span class='text-blue-300'>data</span>: {
+    <span class='text-blue-300'>tracking</span>: <span class='text-green-400'>'1Z999AA10123456784'</span>,
+    <span class='text-blue-300'>recipient</span>: <span class='text-green-400'>'John Doe'</span>,
+    <span class='text-blue-300'>address</span>: <span class='text-green-400'>'123 Main St'</span>
+  }
 });
 
-// Check job status
-const job = await response.json();
-console.log('Print job queued:', job.id);") %></code></pre>
+<span class='text-gray-500'>// ✅ Printed directly to configured printer</span>") %></code></pre>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Download Section -->
-  <section id="download" class="py-20 bg-gradient-to-br from-blue-600 to-purple-600">
-    <div class="container mx-auto px-6 text-center">
-      <h2 class="text-4xl font-bold text-white mb-6">
-        Ready to Start Printing?
-      </h2>
-      <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-        Download GoPrint for Mac and enable silent printing in minutes. Free and open source.
-      </p>
-      
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-        <a href="/download/mac-arm64" class="px-8 py-4 bg-white text-blue-600 rounded-lg text-lg font-semibold hover:shadow-xl transition">
-          <div class="flex items-center justify-center space-x-2">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-            </svg>
-            <span>Download for Apple Silicon</span>
-          </div>
-          <div class="text-sm text-blue-400 mt-1">M1, M2, M3 Macs</div>
-        </a>
-        
-        <a href="/download/mac-intel" class="px-8 py-4 bg-white/10 border-2 border-white/30 text-white rounded-lg text-lg font-semibold hover:bg-white/20 transition">
-          <div class="flex items-center justify-center space-x-2">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-            </svg>
-            <span>Download for Intel</span>
-          </div>
-          <div class="text-sm text-blue-200 mt-1">Intel-based Macs</div>
-        </a>
+  <!-- Features -->
+  <div id="features" class="bg-gray-50 dark:bg-gray-800 py-24 sm:py-32">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl lg:text-center">
+        <h2 class="text-base font-semibold leading-7 text-indigo-600">Built for developers</h2>
+        <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          Everything you need for silent printing
+        </p>
+        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+          GoPrint runs locally on your users' machines and accepts print jobs from your web application.
+        </p>
       </div>
-      
-      <div class="flex items-center justify-center space-x-6 text-white/80">
-        <a href="https://github.com/go9/goprint" class="hover:text-white transition flex items-center space-x-2">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-          <span>View on GitHub</span>
-        </a>
-        <span>•</span>
-        <span>Version 1.0.0</span>
-        <span>•</span>
-        <span>MIT License</span>
+      <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+        <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <div class="flex flex-col">
+            <dt class="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              Secure API Keys
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600 dark:text-gray-300">
+              <p class="flex-auto">Each GoPrint instance generates unique API keys. Your web app uses these keys to authenticate print requests.</p>
+            </dd>
+          </div>
+          <div class="flex flex-col">
+            <dt class="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </div>
+              Template System
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600 dark:text-gray-300">
+              <p class="flex-auto">Define print templates once with printer settings, paper size, and margins. Reuse across your entire application.</p>
+            </dd>
+          </div>
+          <div class="flex flex-col">
+            <dt class="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              Auto Discovery
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600 dark:text-gray-300">
+              <p class="flex-auto">GoPrint automatically registers with our discovery service. Your web app finds it instantly, even when IPs change.</p>
+            </dd>
+          </div>
+        </dl>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- How it works -->
+  <div id="quick-start" class="bg-white dark:bg-gray-900 py-24 sm:py-32">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl lg:mx-0">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">How it works</h2>
+        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+          Get up and running in three simple steps
+        </p>
+      </div>
+      <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+        <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <div>
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <span class="text-white font-bold">1</span>
+              </div>
+              Install GoPrint
+            </dt>
+            <dd class="mt-1 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Download and run GoPrint on the computer connected to your printers. It runs quietly in the system tray.
+            </dd>
+          </div>
+          <div>
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <span class="text-white font-bold">2</span>
+              </div>
+              Configure Templates
+            </dt>
+            <dd class="mt-1 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Set up your print templates with printer selection, paper size, and margins. GoPrint generates an API key.
+            </dd>
+          </div>
+          <div>
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <span class="text-white font-bold">3</span>
+              </div>
+              Start Printing
+            </dt>
+            <dd class="mt-1 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Add the API key to your web app. Send print jobs using our simple REST API or JavaScript client.
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Example -->
+  <div id="api" class="bg-gray-50 dark:bg-gray-800 py-24 sm:py-32">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl lg:mx-0">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">Simple API</h2>
+        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+          Integrate GoPrint with any programming language or framework
+        </p>
+      </div>
+      <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-2">
+        <div>
+          <h3 class="text-lg font-semibold leading-8 text-gray-900 dark:text-white mb-4">JavaScript/TypeScript</h3>
+          <div class="rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="text-sm leading-6 overflow-x-auto"><code><%= raw("<span class='text-purple-400'>import</span> { GoPrint } <span class='text-purple-400'>from</span> <span class='text-green-400'>'goprint-client'</span>;
+
+<span class='text-purple-400'>const</span> printer = <span class='text-blue-400'>new</span> <span class='text-yellow-400'>GoPrint</span>(<span class='text-green-400'>'gp_your_api_key'</span>);
+
+<span class='text-gray-500'>// Print HTML content</span>
+<span class='text-purple-400'>await</span> printer.<span class='text-yellow-400'>print</span>({
+  <span class='text-blue-300'>template</span>: <span class='text-green-400'>'receipt'</span>,
+  <span class='text-blue-300'>html</span>: <span class='text-green-400'>`
+    &lt;div style='text-align: center;'&gt;
+      &lt;h2&gt;Order #1234&lt;/h2&gt;
+      &lt;p&gt;Total: $49.99&lt;/p&gt;
+    &lt;/div&gt;
+  `</span>
+});") %></code></pre>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold leading-8 text-gray-900 dark:text-white mb-4">REST API</h3>
+          <div class="rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="text-sm leading-6 overflow-x-auto"><code><%= raw("<span class='text-blue-400'>POST</span> http://localhost:9377/api/print
+<span class='text-gray-500'>Authorization: Bearer gp_your_api_key</span>
+<span class='text-gray-500'>Content-Type: application/json</span>
+
+{
+  <span class='text-green-400'>\"template\"</span>: <span class='text-green-400'>\"shipping_label\"</span>,
+  <span class='text-green-400'>\"html\"</span>: <span class='text-green-400'>\"&lt;h1&gt;Express Shipping&lt;/h1&gt;...\"</span>
+}") %></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Use Cases -->
+  <div class="bg-white dark:bg-gray-900 py-24 sm:py-32">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl lg:text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          Built for real-world applications
+        </h2>
+        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+          GoPrint is trusted by businesses across industries
+        </p>
+      </div>
+      <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+        <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+          <div class="relative pl-16">
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              E-commerce & Warehouses
+            </dt>
+            <dd class="mt-2 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Print shipping labels, packing slips, and inventory tags directly from your warehouse management system.
+            </dd>
+          </div>
+          <div class="relative pl-16">
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              Retail & Point of Sale
+            </dt>
+            <dd class="mt-2 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Generate receipts, price tags, and barcode labels instantly from your POS system.
+            </dd>
+          </div>
+          <div class="relative pl-16">
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              Healthcare
+            </dt>
+            <dd class="mt-2 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Print patient wristbands, prescription labels, and appointment cards without interrupting workflow.
+            </dd>
+          </div>
+          <div class="relative pl-16">
+            <dt class="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+              <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              Manufacturing
+            </dt>
+            <dd class="mt-2 text-base leading-7 text-gray-600 dark:text-gray-300">
+              Generate work orders, quality control labels, and asset tags directly from your production systems.
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="bg-indigo-600">
+    <div class="px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Ready to eliminate print dialogs?
+        </h2>
+        <p class="mx-auto mt-6 max-w-xl text-lg leading-8 text-indigo-200">
+          Join hundreds of developers using GoPrint to streamline their printing workflows.
+        </p>
+        <div class="mt-10 flex items-center justify-center gap-x-6">
+          <a href="https://github.com/go9/goprint/releases" class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            Download GoPrint
+          </a>
+          <a href="https://github.com/go9/goprint" class="text-sm font-semibold leading-6 text-white">
+            View documentation <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
-  <footer class="py-8 bg-white border-t">
-    <div class="container mx-auto px-6 text-center text-gray-600">
-      <p>© 2024 GoPrint. Made with ❤️ for developers who need to print.</p>
+  <footer class="bg-white dark:bg-gray-900">
+    <div class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+      <div class="flex justify-center space-x-6 md:order-2">
+        <a href="https://github.com/go9/goprint" class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+          <span class="sr-only">GitHub</span>
+          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+      <div class="mt-8 md:order-1 md:mt-0">
+        <p class="text-center text-xs leading-5 text-gray-500 dark:text-gray-400">
+          &copy; 2024 GoPrint. All rights reserved.
+        </p>
+      </div>
     </div>
   </footer>
 </div>

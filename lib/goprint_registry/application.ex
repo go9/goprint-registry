@@ -9,10 +9,15 @@ defmodule GoprintRegistry.Application do
   def start(_type, _args) do
     children = [
       GoprintRegistryWeb.Telemetry,
+      GoprintRegistry.Repo,
       {DNSCluster, query: Application.get_env(:goprint_registry, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GoprintRegistry.PubSub},
       # Start the registry GenServer for managing GoPrint services
       GoprintRegistry.Registry,
+      # Start connection manager for desktop clients
+      GoprintRegistry.ConnectionManager,
+      # Start job queue for print jobs
+      GoprintRegistry.JobQueue,
       # Start to serve requests, typically the last entry
       GoprintRegistryWeb.Endpoint
     ]
