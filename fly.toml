@@ -10,7 +10,7 @@ kill_signal = 'SIGTERM'
 [build]
 
 [env]
-  PHX_HOST = 'goprint-registry.fly.dev'
+  PHX_HOST = 'goprint.dev'
   PORT = '8080'
 
 [http_service]

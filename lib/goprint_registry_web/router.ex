@@ -27,11 +27,17 @@ defmodule GoprintRegistryWeb.Router do
     get "/pricing", PageController, :pricing
     get "/download", PageController, :download
     get "/docs", PageController, :docs
+    
+    # API Documentation
+    get "/api/docs", ApiDocsController, :swagger_ui
   end
 
   # API endpoints for GoPrint registry
   scope "/api", GoprintRegistryWeb do
     pipe_through :api
+    
+    # OpenAPI spec endpoint
+    get "/openapi", ApiDocsController, :openapi
 
     # Health check endpoint
     get "/status", RegistryController, :status
@@ -45,7 +51,17 @@ defmodule GoprintRegistryWeb.Router do
     get "/clients/:client_id/printers", ClientController, :get_printers
     post "/clients/:client_id/test-print", ClientController, :test_print
 
-    # Developer print job endpoints (require authenticated user session)
+    # Developer endpoints (require authenticated user session/API token)
+    # Client management
+    get "/clients", ClientController, :list_user_clients
+    get "/clients/:client_id", ClientController, :get_client_details
+    post "/clients/subscribe", ClientController, :subscribe_client
+    delete "/clients/:client_id/unsubscribe", ClientController, :unsubscribe_client
+    
+    # Print job endpoints
+    get "/print_jobs", PrintJobController, :list
+    get "/print_jobs/:job_id", PrintJobController, :show
+    delete "/print_jobs/:job_id", PrintJobController, :cancel
     post "/print_jobs/file", PrintJobController, :create_file
     post "/print_jobs/test", PrintJobController, :create_test
   end

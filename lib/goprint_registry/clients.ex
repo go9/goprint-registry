@@ -325,6 +325,18 @@ defmodule GoprintRegistry.Clients do
   end
 
   @doc """
+  List all clients associated with a user.
+  """
+  def list_user_clients(user_id) do
+    from(c in Client,
+      join: cu in ClientUser, on: cu.client_id == c.id,
+      where: cu.user_id == ^user_id and cu.is_active == true,
+      select: c
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Check if a user has access to a client.
   """
   def user_has_access?(user_id, client_id) do
@@ -334,6 +346,21 @@ defmodule GoprintRegistry.Clients do
                cu.client_id == ^client_id and 
                cu.is_active == true
     )
+  end
+  
+  @doc """
+  Remove association between user and client.
+  """
+  def unassociate_user_from_client(user_id, client_id) do
+    case Repo.get_by(ClientUser, user_id: user_id, client_id: client_id, is_active: true) do
+      nil ->
+        {:error, :not_found}
+      
+      client_user ->
+        client_user
+        |> Ecto.Changeset.change(%{is_active: false})
+        |> Repo.update()
+    end
   end
   
   @doc """

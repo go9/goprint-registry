@@ -18,9 +18,9 @@
       <!-- Sidebar component -->
       <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4 dark:border-white/10 dark:bg-gray-800">
         <div class="flex h-16 shrink-0 items-center">
-          <.link navigate="/dashboard" class="flex items-center gap-2">
-            <img src="/images/go-logo.png" alt="GO" class="h-10 w-auto">
-            <span class="text-xl font-bold text-gray-900 dark:text-white">Print</span>
+          <.link navigate="/dashboard" class="flex items-center gap-3">
+            <img src="/images/go-logo.png" alt="GoPrint" class="h-8 w-auto" />
+            <span class="text-lg font-bold text-gray-900 dark:text-white">GoPrint</span>
           </.link>
           
           <%= if Application.get_env(:goprint_registry, :environment) in [:dev, :staging] do %>
@@ -47,9 +47,9 @@
       aria-label="Sidebar"
     >
       <div class="flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
-        <.link navigate="/dashboard" class="flex items-center gap-2">
-          <img src="/images/go-logo.png" alt="GO" class="h-10 w-auto">
-          <span class="text-xl font-bold text-gray-900 dark:text-white">Print</span>
+        <.link navigate="/dashboard" class="flex items-center gap-3">
+          <img src="/images/go-logo.png" alt="GoPrint" class="h-8 w-auto" />
+          <span class="text-lg font-bold text-gray-900 dark:text-white">GoPrint</span>
         </.link>
         
         <%= if Application.get_env(:goprint_registry, :environment) in [:dev, :staging] do %>

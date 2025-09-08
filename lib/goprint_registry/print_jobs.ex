@@ -103,6 +103,82 @@ defmodule GoprintRegistry.PrintJobs do
     PrintJob.changeset(print_job, attrs)
   end
 
+  @doc """
+  List print jobs for a user with filters and pagination.
+  Returns a tuple of {jobs, total_count}.
+  """
+  def list_user_print_jobs(user_id, filters \\ %{}) do
+    query = 
+      from(p in PrintJob,
+        where: p.user_id == ^user_id,
+        order_by: [desc: p.inserted_at]
+      )
+    
+    # Apply filters
+    query = 
+      if filters[:client_id] do
+        where(query, [p], p.client_id == ^filters.client_id)
+      else
+        query
+      end
+    
+    query = 
+      if filters[:status] do
+        where(query, [p], p.status == ^filters.status)
+      else
+        query
+      end
+    
+    # Get total count
+    total = Repo.aggregate(query, :count, :id)
+    
+    # Apply pagination
+    query = 
+      query
+      |> limit(^(filters[:limit] || 20))
+      |> offset(^(filters[:offset] || 0))
+    
+    jobs = Repo.all(query)
+    {jobs, total}
+  end
+  
+  @doc """
+  Get a print job for a specific user by job_id.
+  """
+  def get_user_print_job(user_id, job_id) do
+    PrintJob
+    |> where(user_id: ^user_id, job_id: ^job_id)
+    |> Repo.one()
+  end
+  
+  @doc """
+  Cancel a print job.
+  """
+  def cancel_print_job(%PrintJob{} = print_job) do
+    print_job
+    |> PrintJob.changeset(%{status: "cancelled"})
+    |> Repo.update()
+  end
+  
+  @doc """
+  Get statistics for a client.
+  """
+  def get_client_statistics(client_id) do
+    query = from(p in PrintJob, where: p.client_id == ^client_id)
+    
+    total = Repo.aggregate(query, :count, :id)
+    completed = Repo.aggregate(from(p in query, where: p.status == "completed"), :count, :id)
+    failed = Repo.aggregate(from(p in query, where: p.status == "failed"), :count, :id)
+    pages = Repo.aggregate(from(p in query, where: p.status == "completed"), :sum, :pages) || 0
+    
+    %{
+      total_jobs: total,
+      completed_jobs: completed,
+      failed_jobs: failed,
+      pages_printed: pages
+    }
+  end
+
   defp generate_job_id do
     "pj_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
   end

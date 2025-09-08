@@ -305,6 +305,166 @@ defmodule GoprintRegistryWeb.ClientController do
     end
   end
   
+  # GET /api/clients
+  # List all clients associated with the authenticated user
+  def list_user_clients(conn, _params) do
+    case conn.assigns[:current_scope] do
+      %{user: user} when not is_nil(user) ->
+        clients = Clients.list_user_clients(user.id)
+        
+        # Transform clients to match API spec
+        client_data = Enum.map(clients, fn client ->
+          %{
+            id: client.id,
+            api_name: client.api_name,
+            status: get_client_status(client),
+            last_connected_at: client.last_connected_at,
+            registered_at: client.registered_at,
+            operating_system: client.operating_system,
+            app_version: client.app_version,
+            printer_count: length(Map.get(client, :printers, []))
+          }
+        end)
+        
+        json(conn, client_data)
+        
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{success: false, error: "unauthenticated"})
+    end
+  end
+  
+  # GET /api/clients/:client_id
+  # Get detailed information about a specific client
+  def get_client_details(conn, %{"client_id" => client_id}) do
+    case conn.assigns[:current_scope] do
+      %{user: user} when not is_nil(user) ->
+        if Clients.user_has_access?(user.id, client_id) do
+          case Clients.get_client(client_id) do
+            nil ->
+              conn
+              |> put_status(:not_found)
+              |> json(%{success: false, error: "Client not found"})
+              
+            client ->
+              # Try to get printers from WebSocket connection
+              printers = case GoprintRegistry.ConnectionManager.get_client(client_id) do
+                {:ok, %{printers: printers}} -> printers
+                _ -> []
+              end
+              
+              # Get print job statistics
+              stats = GoprintRegistry.PrintJobs.get_client_statistics(client_id)
+              
+              client_detail = %{
+                id: client.id,
+                api_name: client.api_name,
+                status: get_client_status(client),
+                last_connected_at: client.last_connected_at,
+                registered_at: client.registered_at,
+                operating_system: client.operating_system,
+                app_version: client.app_version,
+                printers: printers,
+                statistics: %{
+                  total_jobs: stats.total_jobs,
+                  completed_jobs: stats.completed_jobs,
+                  failed_jobs: stats.failed_jobs,
+                  pages_printed: stats.pages_printed || 0
+                }
+              }
+              
+              json(conn, client_detail)
+          end
+        else
+          conn
+          |> put_status(:forbidden)
+          |> json(%{success: false, error: "Access denied"})
+        end
+        
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{success: false, error: "unauthenticated"})
+    end
+  end
+  
+  # POST /api/clients/subscribe
+  # Subscribe to a client (associate with user account)
+  def subscribe_client(conn, %{"client_id" => client_id}) do
+    case conn.assigns[:current_scope] do
+      %{user: user} when not is_nil(user) ->
+        case Clients.associate_user_with_client(user.id, String.trim(client_id)) do
+          {:ok, _} ->
+            json(conn, %{success: true, message: "Successfully subscribed to client"})
+            
+          {:error, :invalid_client_id} ->
+            conn
+            |> put_status(:not_found)
+            |> json(%{success: false, error: "Client not found"})
+            
+          {:error, :already_associated} ->
+            json(conn, %{success: true, message: "Already subscribed to this client"})
+            
+          _ ->
+            conn
+            |> put_status(:bad_request)
+            |> json(%{success: false, error: "Failed to subscribe"})
+        end
+        
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{success: false, error: "unauthenticated"})
+    end
+  end
+  
+  # DELETE /api/clients/:client_id/unsubscribe
+  # Unsubscribe from a client (remove association)
+  def unsubscribe_client(conn, %{"client_id" => client_id}) do
+    case conn.assigns[:current_scope] do
+      %{user: user} when not is_nil(user) ->
+        case Clients.unassociate_user_from_client(user.id, client_id) do
+          {:ok, _} ->
+            json(conn, %{success: true, message: "Successfully unsubscribed from client"})
+            
+          {:error, :not_found} ->
+            conn
+            |> put_status(:not_found)
+            |> json(%{success: false, error: "Client association not found"})
+            
+          _ ->
+            conn
+            |> put_status(:bad_request)
+            |> json(%{success: false, error: "Failed to unsubscribe"})
+        end
+        
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{success: false, error: "unauthenticated"})
+    end
+  end
+  
+  defp get_client_status(client) do
+    # Check if client is connected via WebSocket
+    ws_connections = GoprintRegistry.ConnectionManager.list_connections()
+    is_connected = Enum.any?(ws_connections, fn {id, _} -> id == client.id end)
+    
+    if is_connected do
+      "connected"
+    else
+      # Check last connection time
+      case client.last_connected_at do
+        nil -> "disconnected"
+        last_connected ->
+          # If connected in last 5 minutes, show as recently connected
+          diff = DateTime.diff(DateTime.utc_now(), last_connected, :minute)
+          if diff <= 5, do: "disconnected", else: "disconnected"
+      end
+    end
+  end
+
   # POST /api/clients/:client_id/test-print
   # Send a test print to a connected desktop client
   def test_print(conn, %{"id" => client_id} = params) do

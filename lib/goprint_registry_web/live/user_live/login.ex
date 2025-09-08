@@ -6,8 +6,7 @@ defmodule GoprintRegistryWeb.UserLive.Login do
     ~H"""
     <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <img src="/images/go-logo.png" alt="GoPrint" class="mx-auto h-10 w-auto" />
-        <h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
+        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
           Sign in to your account
         </h2>
       </div>

@@ -3,51 +3,126 @@
     <div class="mx-auto max-w-3xl">
       <h1 class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl dark:text-white">Documentation</h1>
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        Learn how to install the GoPrint agent, register printers, and send print jobs from your application.
+        Learn how to integrate with GoPrint Registry, manage clients, and send print jobs through our API.
       </p>
+
+      <!-- API Documentation Section -->
+      <div class="mt-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 p-6 border border-indigo-200 dark:border-indigo-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
+              Interactive API Documentation
+            </h2>
+            <p class="mt-1 text-sm text-indigo-700 dark:text-indigo-300">
+              Explore and test our REST API endpoints with Swagger UI
+            </p>
+          </div>
+          <a href="/api/docs" target="_blank" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            Open API Docs
+            <svg class="ml-2 -mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </div>
 
       <div class="mt-10 space-y-12">
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Quick start</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Getting Started</h2>
           <ol class="mt-4 list-decimal space-y-3 pl-6 text-gray-700 dark:text-gray-300">
-            <li>Download and install the agent from <a href="/download" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">/download</a>.</li>
-            <li>On first launch, the agent calls <code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">POST /api/clients/register</code> and shows a Client ID (UUID).</li>
-            <li>Share the Client ID with your developer (GoCloud user). They can subscribe to the client via API.</li>
-            <li>Register your printers in the agent and name your templates.</li>
-            <li>Send a test job using the REST API or JavaScript client.</li>
+            <li><strong>Create an account</strong> and generate an API key from your <a href="/users/api-keys" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">API Keys</a> page.</li>
+            <li><strong>Download the desktop agent</strong> from <a href="/download" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">/download</a> and install it on the client machine.</li>
+            <li><strong>Register the client</strong> - The agent will automatically register and display a Client ID on first launch.</li>
+            <li><strong>Subscribe to the client</strong> using the Client ID via the API or your dashboard.</li>
+            <li><strong>Send print jobs</strong> using our REST API with your API key.</li>
           </ol>
         </div>
 
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">REST example</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Authentication</h2>
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            All API requests require authentication using Bearer tokens. Include your API key in the Authorization header:
+          </p>
           <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
-            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> http://localhost:9377/api/print\n<span class='text-gray-500'>Authorization: Bearer gp_your_api_key</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"template\"</span>: <span class='text-green-400'>\"receipt\"</span>,\n  <span class='text-green-400'>\"html\"</span>: <span class='text-green-400'>\"&lt;h1&gt;Hello, printer!&lt;/h1&gt;\"</span>\n}") %></code></pre>
+            <pre class="overflow-x-auto text-sm leading-6"><code><span class='text-gray-500'>Authorization: Bearer your_api_key_here</span></code></pre>
           </div>
         </div>
 
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">JavaScript example</h2>
-          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
-            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-purple-400'>const</span> res = <span class='text-purple-400'>await</span> fetch(<span class='text-green-400'>'http://localhost:9377/api/print'</span>, {\n  <span class='text-blue-300'>method</span>: <span class='text-green-400'>'POST'</span>,\n  <span class='text-blue-300'>headers</span>: {\n    <span class='text-green-400'>'Authorization'</span>: <span class='text-green-400'>'Bearer gp_your_api_key'</span>,\n    <span class='text-green-400'>'Content-Type'</span>: <span class='text-green-400'>'application/json'</span>\n  },\n  <span class='text-blue-300'>body</span>: <span class='text-green-400'>JSON.stringify({ template: 'receipt', html: '<h1>Hello</h1>' })</span>\n});") %></code></pre>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Core API Endpoints</h2>
+          <div class="mt-4 space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Client Management</h3>
+              <ul class="mt-2 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">GET /api/clients</code> - List all your clients</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">GET /api/clients/:id</code> - Get client details and printers</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">POST /api/clients/subscribe</code> - Subscribe to a client</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">DELETE /api/clients/:id/unsubscribe</code> - Unsubscribe from a client</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Print Jobs</h3>
+              <ul class="mt-2 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">GET /api/print_jobs</code> - List print jobs with filtering</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">GET /api/print_jobs/:id</code> - Get job status</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">POST /api/print_jobs/file</code> - Create print job from file</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">POST /api/print_jobs/test</code> - Send test print</li>
+                <li><code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">DELETE /api/print_jobs/:id</code> - Cancel a print job</li>
+              </ul>
+            </div>
           </div>
         </div>
 
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Next steps</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Example: Subscribe to a Client</h2>
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            After your end user shares their Client ID with you, subscribe to receive their print jobs:
+          </p>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> /api/clients/subscribe\n<span class='text-gray-500'>Authorization: Bearer your_api_key_here</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"client_id\"</span>: <span class='text-green-400'>\"f9f2e9f4-8b7a-4c3d-9e2f-1a2b3c4d5e6f\"</span>\n}") %></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Example: Send a Print Job</h2>
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            Send a file to a specific printer on a subscribed client:
+          </p>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> /api/print_jobs/file\n<span class='text-gray-500'>Authorization: Bearer your_api_key_here</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"client_id\"</span>: <span class='text-green-400'>\"f9f2e9f4-8b7a-4c3d-9e2f-1a2b3c4d5e6f\"</span>,\n  <span class='text-green-400'>\"printer_id\"</span>: <span class='text-green-400'>\"printer_001\"</span>,\n  <span class='text-green-400'>\"data_base64\"</span>: <span class='text-green-400'>\"JVBERi0xLjQKJdPr6eEKMSAw...\"</span>,\n  <span class='text-green-400'>\"mime\"</span>: <span class='text-green-400'>\"application/pdf\"</span>,\n  <span class='text-green-400'>\"filename\"</span>: <span class='text-green-400'>\"invoice.pdf\"</span>,\n  <span class='text-green-400'>\"options\"</span>: {\n    <span class='text-green-400'>\"copies\"</span>: 1,\n    <span class='text-green-400'>\"color\"</span>: true,\n    <span class='text-green-400'>\"duplex\"</span>: false\n  }\n}") %></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">JavaScript SDK Example</h2>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-purple-400'>const</span> GoPrint = <span class='text-purple-400'>require</span>(<span class='text-green-400'>'@goprint/sdk'</span>);\n\n<span class='text-purple-400'>const</span> client = <span class='text-purple-400'>new</span> GoPrint({\n  <span class='text-blue-300'>apiKey</span>: <span class='text-green-400'>'your_api_key_here'</span>,\n  <span class='text-blue-300'>baseUrl</span>: <span class='text-green-400'>'https://api.goprint.io'</span>\n});\n\n<span class='text-gray-500'>// List all clients</span>\n<span class='text-purple-400'>const</span> clients = <span class='text-purple-400'>await</span> client.clients.list();\n\n<span class='text-gray-500'>// Send a print job</span>\n<span class='text-purple-400'>const</span> job = <span class='text-purple-400'>await</span> client.printJobs.create({\n  <span class='text-blue-300'>clientId</span>: <span class='text-green-400'>'f9f2e9f4-...'</span>,\n  <span class='text-blue-300'>printerId</span>: <span class='text-green-400'>'printer_001'</span>,\n  <span class='text-blue-300'>file</span>: buffer,\n  <span class='text-blue-300'>mimeType</span>: <span class='text-green-400'>'application/pdf'</span>\n});\n\n<span class='text-gray-500'>// Check job status</span>\n<span class='text-purple-400'>const</span> status = <span class='text-purple-400'>await</span> client.printJobs.get(job.jobId);") %></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Rate Limits</h2>
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            API requests are rate-limited to ensure fair usage:
+          </p>
+          <ul class="mt-2 list-disc space-y-1 pl-6 text-gray-700 dark:text-gray-300">
+            <li>1000 requests per hour per API key</li>
+            <li>100 concurrent connections per client</li>
+            <li>40MB maximum file size per print job</li>
+          </ul>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Next Steps</h2>
           <ul class="mt-4 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
-            <li>Set printer-specific margins and paper sizes per template.</li>
-            <li>Use per-printer API keys for least-privilege access.</li>
-            <li>Handle job webhooks to track success/failure.</li>
+            <li>Explore the full API reference in our <a href="/api/docs" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Interactive API Documentation</a></li>
+            <li>Set up webhooks to receive real-time print job status updates</li>
+            <li>Configure printer-specific settings and templates</li>
+            <li>Implement error handling and retry logic in your application</li>
           </ul>
         </div>
       </div>
     </div>
   </div>
 </section>
-        <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Subscribe a client (for developers)</h2>
-          <p class="mt-2 text-gray-700 dark:text-gray-300">Associate a client with your account after your end user shares their Client ID with you.</p>
-          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
-            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> https://your-cloud.example.com/clients/subscribe\n<span class='text-gray-500'>Cookie: _goprint_registry_key=... (authenticated session)</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"client_id\"</span>: <span class='text-green-400'>\"f9f2e9f4-...\"</span>\n}") %></code></pre>
-          </div>
-        </div>

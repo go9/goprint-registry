@@ -22,7 +22,7 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="api-keys-page" phx-hook="UrlOpener">
       <!-- Header section with Create button -->
       <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
@@ -35,7 +35,17 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                 Manage API keys for programmatic access to the GoPrint Registry API
               </p>
             </div>
-            <div class="mt-4 sm:mt-0">
+            <div class="mt-4 sm:mt-0 flex gap-2">
+              <a
+                href="/api/docs"
+                target="_blank"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
+                API Docs
+              </a>
               <button
                 type="button"
                 phx-click="open_modal"
@@ -144,14 +154,27 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                     <% end %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      phx-click="revoke"
-                      phx-value-id={key.id}
-                      data-confirm="Are you sure you want to revoke this API key? This action cannot be undone."
-                      class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      Revoke
-                    </button>
+                    <div class="flex items-center justify-end gap-3">
+                      <button
+                        phx-click="open_in_docs"
+                        phx-value-id={key.id}
+                        title="Open API docs with this key"
+                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                      >
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                        </svg>
+                      </button>
+                      <button
+                        phx-click="revoke"
+                        phx-value-id={key.id}
+                        data-confirm="Are you sure you want to revoke this API key? This action cannot be undone."
+                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Revoke
+                      </button>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -294,6 +317,17 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                 >
                   Done
                 </button>
+                <a
+                  href="/api/docs"
+                  target="_blank"
+                  class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-300 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto"
+                >
+                  <svg class="-ml-0.5 mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                  Open API Docs
+                </a>
               </div>
             </div>
           </div>
@@ -349,6 +383,14 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
      socket
      |> assign(:filter, filter)
      |> assign(:filtered_keys, filtered_keys)}
+  end
+  
+  def handle_event("open_in_docs", %{"id" => _id}, socket) do
+    # Since we don't store the actual token after creation, we'll inform the user
+    {:noreply,
+     socket
+     |> put_flash(:info, "Please copy your API key first, then paste it in the API docs 'Authorize' dialog.")
+     |> push_event("open-url", %{url: "/api/docs"})}
   end
 
   defp filter_keys(keys, ""), do: keys

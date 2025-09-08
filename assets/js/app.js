@@ -115,11 +115,20 @@ const CopyButton = {
   }
 }
 
+// URL opener hook
+const UrlOpener = {
+  mounted() {
+    this.handleEvent("open-url", ({url}) => {
+      window.open(url, '_blank')
+    })
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {DarkMode, ThemeSelector, CopyButton},
+  hooks: {DarkMode, ThemeSelector, CopyButton, UrlOpener},
 })
 
 // Show progress bar on live navigation and form submits
