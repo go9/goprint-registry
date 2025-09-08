@@ -45,15 +45,30 @@ defmodule GoprintRegistryWeb.Admin.ClientsLive do
 
   @impl true
   def handle_info(:refresh_connections, socket) do
-    # Just refresh the clients directly
-    {clients, meta} = list_clients(socket.assigns.meta.flop)
-    
-    socket = 
-      socket
-      |> stream(:clients, clients, reset: true)
-      |> assign(:meta, meta)
-    
-    {:noreply, socket}
+    # Just refresh the clients directly if we have meta with flop
+    if Map.has_key?(socket.assigns, :meta) && socket.assigns.meta do
+      {clients, meta} = Clients.list_clients_with_flop(socket.assigns.meta.flop)
+      
+      # Get active WebSocket connections
+      ws_connections = ConnectionManager.list_connections()
+      ws_client_ids = Enum.map(ws_connections, fn {client_id, _} -> client_id end)
+      
+      # Update status based on actual WebSocket connections
+      clients_with_ws = Enum.map(clients, fn client ->
+        Map.from_struct(client)
+        |> Map.put(:status, if(client.id in ws_client_ids, do: "connected", else: "disconnected"))
+        |> Map.put(:ws_connected, client.id in ws_client_ids)
+      end)
+      
+      socket = 
+        socket
+        |> stream(:clients, clients_with_ws, reset: true)
+        |> assign(:meta, meta)
+      
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
   end
   
   @impl true

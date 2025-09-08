@@ -11,12 +11,15 @@ defmodule GoprintRegistry.Accounts.UserToken do
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
   @session_validity_in_days 14
+  @api_token_validity_in_days 365
 
   schema "users_tokens" do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
+    field :name, :string
+    field :last_used_at, :utc_datetime
     belongs_to :user, GoprintRegistry.Accounts.User
 
     timestamps(type: :utc_datetime, updated_at: false)
@@ -147,6 +150,62 @@ defmodule GoprintRegistry.Accounts.UserToken do
 
       :error ->
         :error
+    end
+  end
+
+  @doc """
+  Builds an API token for a user with a name.
+  """
+  def build_api_token(user, name) do
+    token = :crypto.strong_rand_bytes(@rand_size)
+    encoded_token = Base.url_encode64(token, padding: false)
+    hashed_token = :crypto.hash(@hash_algorithm, token)
+    
+    user_token = %UserToken{
+      token: hashed_token,
+      context: "api",
+      user_id: user.id,
+      name: name
+    }
+    
+    {encoded_token, user_token}
+  end
+
+  @doc """
+  Checks if the API token is valid and returns its underlying lookup query.
+  
+  The query returns the user found by the token, if any.
+  
+  The given token is valid if it matches its hashed counterpart in the
+  database and if it has not expired (after @api_token_validity_in_days).
+  """
+  def verify_api_token_query(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        
+        query =
+          from token in by_token_and_context_query(hashed_token, "api"),
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(@api_token_validity_in_days, "day"),
+            select: user
+        
+        {:ok, query}
+      
+      :error ->
+        :error
+    end
+  end
+
+  @doc """
+  Hashes a token for storage/comparison.
+  """
+  def hash_token(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        :crypto.hash(@hash_algorithm, decoded_token)
+      :error ->
+        nil
     end
   end
 

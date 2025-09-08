@@ -199,18 +199,16 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
     client = Enum.find(socket.assigns.clients, &(&1.id == client_id))
     
     if client && Clients.user_has_access?(socket.assigns.current_scope.user.id, client.id) do
-      # Create default test content
+      # Create default test content (plain text) - desktop converts to PDF
       content = """
-      Test Print from GoPrint Registry
-      ================================
-      
-      Client: #{client.api_name || client_id}
-      Printer: #{printer_name}
-      Date: #{DateTime.utc_now() |> DateTime.to_string()}
-      
-      ✓ Connection successful
-      ✓ Print test successful
-      
+      Test Print from GoPrint Registry\n
+      Client: #{client.api_name || client_id}\n
+      Printer: #{printer_name}\n
+      Date: #{DateTime.utc_now() |> DateTime.to_string()}\n
+      \n
+      ✓ Connection successful\n
+      ✓ Print test successful\n
+      \n
       This is a test page to verify printer connectivity.
       """
       
@@ -219,16 +217,26 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
         user_id: socket.assigns.current_scope.user.id,
         printer_id: printer_id,
         paper_size: "A4",
-        content: content
+        content: content,
+        options: %{mime: "text/plain", filename: "test.txt", document_name: "Test Print"}
       }) do
         {:ok, print_job} ->
           Logger.info("Quick print job created: #{print_job.job_id} for printer #{printer_id}")
           
           # Send print job to client via WebSocket
+          # Format job for desktop client (exclude associations)
+          # Desktop app expects: content (base64) and options.mime
+          job_for_desktop = %{
+            job_id: print_job.job_id,
+            printer_id: print_job.printer_id,
+            content: Base.encode64(print_job.content || ""),
+            options: print_job.options
+          }
+          
           Phoenix.PubSub.broadcast(
             GoprintRegistry.PubSub,
             "desktop:#{client.id}",
-            {:print_job, Map.from_struct(print_job)}
+            {:print_job, job_for_desktop}
           )
           
           Logger.info("Print job #{print_job.job_id} broadcast to desktop:#{client.id}")
@@ -308,16 +316,26 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
         user_id: socket.assigns.current_scope.user.id,
         printer_id: params["printer_id"],
         paper_size: params["paper_size"],
-        content: params["content"]
+        content: params["content"],
+        options: %{mime: "text/plain", filename: "test.txt", document_name: "Test Print"}
       }) do
         {:ok, print_job} ->
           Logger.info("Print job created: #{print_job.job_id} for client #{client.id}")
           
           # Send print job to client via WebSocket
+          # Format job for desktop client (exclude associations)
+          # Desktop app expects: content (base64) and options.mime
+          job_for_desktop = %{
+            job_id: print_job.job_id,
+            printer_id: print_job.printer_id,
+            content: Base.encode64(print_job.content || ""),
+            options: print_job.options
+          }
+          
           Phoenix.PubSub.broadcast(
             GoprintRegistry.PubSub,
             "desktop:#{client.id}",
-            {:print_job, Map.from_struct(print_job)}
+            {:print_job, job_for_desktop}
           )
           
           Logger.info("Print job #{print_job.job_id} broadcast to desktop:#{client.id}")

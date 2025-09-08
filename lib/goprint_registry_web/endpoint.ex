@@ -1,5 +1,6 @@
 defmodule GoprintRegistryWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :goprint_registry
+  use Plug.ErrorHandler
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -49,10 +50,23 @@ defmodule GoprintRegistryWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Phoenix.json_library()
+    json_decoder: Phoenix.json_library(),
+    length: 40 * 1024 * 1024
 
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
   plug GoprintRegistryWeb.Router
+
+  @impl Plug.ErrorHandler
+  def handle_errors(conn, %{kind: _kind, reason: %Plug.Parsers.RequestTooLargeError{} = _err, stack: _stack}) do
+    # Return JSON for API routes, simple text elsewhere
+    if String.starts_with?(conn.request_path || "", "/api") do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(413, "{\"error\":\"Request payload too large (max 40MB)\"}")
+    else
+      send_resp(conn, 413, "Payload too large, max 40MB")
+    end
+  end
 end

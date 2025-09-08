@@ -304,4 +304,56 @@ defmodule GoprintRegistryWeb.ClientController do
         end
     end
   end
+  
+  # POST /api/clients/:client_id/test-print
+  # Send a test print to a connected desktop client
+  def test_print(conn, %{"id" => client_id} = params) do
+    Logger.info("Test print request from desktop app for client: #{client_id}")
+    
+    # Verify the client exists
+    case Clients.get_client(client_id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{success: false, error: "Client not found"})
+      
+      _client ->
+        # Check if client is connected via WebSocket
+        ws_connections = GoprintRegistry.ConnectionManager.list_connections()
+        is_connected = Enum.any?(ws_connections, fn {id, _} -> id == client_id end)
+        
+        if is_connected do
+          # Send test print job through WebSocket
+          job_id = Ecto.UUID.generate()
+          
+          print_job = %{
+            id: job_id,
+            printer_id: params["printer_id"],
+            content: params["content"] || "Test Print",
+            options: %{
+              mime: "text/plain",
+              filename: "test.txt",
+              document_name: "GoPrint Test",
+              page_size: params["paper_size"]
+            }
+          }
+          
+          Logger.info("Sending test print job via WebSocket: #{inspect(print_job)}")
+          
+          # Broadcast to the specific client's channel
+          GoprintRegistryWeb.Endpoint.broadcast!(
+            "desktop:#{client_id}",
+            "print_job",
+            print_job
+          )
+          
+          json(conn, %{success: true, job_id: job_id, message: "Test print sent"})
+        else
+          Logger.warning("Client #{client_id} is not connected via WebSocket")
+          conn
+          |> put_status(:service_unavailable)
+          |> json(%{success: false, error: "Client is not connected"})
+        end
+    end
+  end
 end

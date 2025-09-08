@@ -21,35 +21,6 @@ Web Application → Lookup (API key) → Gets IP → Direct connection to GoPrin
 
 ## API Endpoints
 
-### Register a GoPrint Instance
-```bash
-POST /api/register
-Content-Type: application/json
-
-{
-  "api_key": "gp_your_api_key",
-  "ip": "192.168.1.100",
-  "port": 9377,
-  "name": "Office Printer"
-}
-```
-
-### Lookup a GoPrint Instance
-```bash
-GET /api/lookup/gp_your_api_key
-
-Response:
-{
-  "success": true,
-  "service": {
-    "ip": "192.168.1.100",
-    "port": 9377,
-    "name": "Office Printer",
-    "updated_at": "2024-01-15T10:30:00Z"
-  }
-}
-```
-
 ### Check Registry Status
 ```bash
 GET /api/status
@@ -61,6 +32,30 @@ Response:
   "server_time": "2024-01-15T10:30:00Z"
 }
 ```
+
+### Developer Print API (document-first)
+
+Prefer sending documents (PDF recommended) as base64 with MIME metadata.
+
+- POST `/api/print_jobs/file`
+  - Auth: user session cookie (must be logged in and subscribed to the client)
+  - Body (JSON):
+    - `client_id` (string, required)
+    - `printer_id` (string, required)
+    - `data_base64` (string, required)
+    - `mime` (string, required) e.g. `application/pdf`, `image/png`, `text/plain`
+    - `filename` (string, optional)
+    - `options` (object, optional): `document_name`, `raw`, `page_size`, etc.
+  - Response: `{ success, job_id, status: "sent" | "queued" }`
+
+- POST `/api/print_jobs/test`
+  - Sends a simple text test page (converted to PDF on desktop)
+  - Body (JSON): `{ client_id, printer_id }`
+  - Response: `{ success, job_id, status }`
+
+Notes
+- “Raw” mode forwards bytes directly for label/ZPL printers: set `options.raw = true`.
+- If the desktop client is offline, jobs are queued and delivered when it reconnects.
 
 ## Local Development
 

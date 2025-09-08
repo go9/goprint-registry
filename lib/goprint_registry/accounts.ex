@@ -343,6 +343,65 @@ defmodule GoprintRegistry.Accounts do
     :ok
   end
 
+  ## API tokens
+
+  @doc """
+  Creates an API token for a user.
+  Returns the raw token that should be displayed to the user once.
+  """
+  def create_user_api_token(%User{} = user, name) when is_binary(name) do
+    {token, user_token} = UserToken.build_api_token(user, name)
+    Repo.insert!(user_token)
+    token
+  end
+
+  @doc """
+  Fetches a user by API token.
+  Also updates the last_used_at timestamp.
+  """
+  def fetch_user_by_api_token(token) do
+    with {:ok, query} <- UserToken.verify_api_token_query(token),
+         %User{} = user <- Repo.one(query) do
+      # Update last_used_at
+      Repo.update_all(
+        from(t in UserToken, where: [token: ^UserToken.hash_token(token), context: "api"]),
+        set: [last_used_at: DateTime.utc_now()]
+      )
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Lists all API tokens for a user.
+  Does not return the actual token values for security.
+  """
+  def list_user_api_tokens(%User{} = user) do
+    from(t in UserToken,
+      where: t.user_id == ^user.id and t.context == "api",
+      order_by: [desc: t.inserted_at],
+      select: %{
+        id: t.id,
+        name: t.name,
+        inserted_at: t.inserted_at,
+        last_used_at: t.last_used_at
+      }
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Deletes an API token by its ID.
+  """
+  def delete_user_api_token(user_id, token_id) do
+    from(t in UserToken,
+      where: t.id == ^token_id and t.user_id == ^user_id and t.context == "api"
+    )
+    |> Repo.delete_all()
+    :ok
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

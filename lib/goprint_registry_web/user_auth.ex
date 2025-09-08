@@ -75,6 +75,25 @@ defmodule GoprintRegistryWeb.UserAuth do
     end
   end
 
+  @doc """
+  Authenticates the user by looking for a Bearer token in the Authorization header.
+  
+  This is used for API authentication. If no authorization header is present,
+  it preserves any existing authentication from session.
+  """
+  def fetch_current_scope_for_api_user(conn, _opts) do
+    case get_req_header(conn, "authorization") do
+      ["Bearer " <> token] ->
+        # If Bearer token is provided, try to authenticate with it
+        user = Accounts.fetch_user_by_api_token(token)
+        assign(conn, :current_scope, Scope.for_user(user))
+      
+      _ ->
+        # No authorization header, keep existing scope (from session auth)
+        conn
+    end
+  end
+
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
       {token, conn}

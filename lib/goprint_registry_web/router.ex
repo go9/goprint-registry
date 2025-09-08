@@ -15,6 +15,9 @@ defmodule GoprintRegistryWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :fetch_current_scope_for_user
+    plug :fetch_current_scope_for_api_user
   end
 
   scope "/", GoprintRegistryWeb do
@@ -40,6 +43,11 @@ defmodule GoprintRegistryWeb.Router do
     post "/clients/login", ClientController, :login
     post "/clients/heartbeat", ClientController, :heartbeat
     get "/clients/:client_id/printers", ClientController, :get_printers
+    post "/clients/:client_id/test-print", ClientController, :test_print
+
+    # Developer print job endpoints (require authenticated user session)
+    post "/print_jobs/file", PrintJobController, :create_file
+    post "/print_jobs/test", PrintJobController, :create_test
   end
 
   ## Authentication routes
@@ -54,6 +62,7 @@ defmodule GoprintRegistryWeb.Router do
       live "/clients", ClientsLive.Index, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      live "/users/api-keys", UserLive.ApiKeys, :index
     end
 
     # JSON endpoint for developers to subscribe to a client by id

@@ -52,11 +52,74 @@ const ThemeSelector = {
   }
 }
 
+// Clipboard hook for copying API keys
+const CopyButton = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const text = this.el.dataset.clipboardText
+      if (!text) return
+      
+      // Save original button content
+      const originalContent = this.el.innerHTML
+      
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          this.showSuccess(originalContent)
+        }).catch(err => {
+          console.error("Failed to copy with clipboard API:", err)
+          this.fallbackCopy(text, originalContent)
+        })
+      } else {
+        // Use fallback for older browsers or non-secure contexts
+        this.fallbackCopy(text, originalContent)
+      }
+    })
+  },
+  
+  showSuccess(originalContent) {
+    // Change button text to "Copied!"
+    this.el.innerHTML = `
+      <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      Copied!
+    `
+    this.el.classList.add("bg-green-50", "dark:bg-green-900/30", "text-green-700", "dark:text-green-400", "border-green-300", "dark:border-green-700")
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+      this.el.innerHTML = originalContent
+      this.el.classList.remove("bg-green-50", "dark:bg-green-900/30", "text-green-700", "dark:text-green-400", "border-green-300", "dark:border-green-700")
+    }, 2000)
+  },
+  
+  fallbackCopy(text, originalContent) {
+    const textarea = document.createElement("textarea")
+    textarea.value = text
+    textarea.style.position = "fixed"
+    textarea.style.top = "-999px"
+    textarea.style.opacity = "0"
+    document.body.appendChild(textarea)
+    textarea.focus()
+    textarea.select()
+    
+    try {
+      document.execCommand("copy")
+      this.showSuccess(originalContent)
+    } catch (err) {
+      console.error("Fallback copy failed:", err)
+    } finally {
+      document.body.removeChild(textarea)
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {DarkMode, ThemeSelector},
+  hooks: {DarkMode, ThemeSelector, CopyButton},
 })
 
 // Show progress bar on live navigation and form submits
