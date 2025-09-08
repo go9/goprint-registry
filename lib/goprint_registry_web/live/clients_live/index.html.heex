@@ -8,32 +8,32 @@
     </div>
   </div>
 
-  <!-- Add Client Form -->
+  <!-- Subscribe Client Form -->
   <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
     <div class="px-4 py-5 sm:p-6">
       <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-        Add New Client
+        Subscribe to Client
       </h3>
       <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
-        <p>Enter the API key from your GoPrint desktop client to register it with your account.</p>
+        <p>Enter the Client ID provided by your end user to subscribe that client to your account.</p>
       </div>
       <.form for={@add_client_form} phx-submit="add_client" class="mt-5 sm:flex sm:items-center">
         <div class="w-full sm:max-w-xs">
-          <label for="api_key" class="sr-only">API Key</label>
+          <label for="client_id" class="sr-only">Client ID</label>
           <input
             type="text"
-            name="add_client[api_key]"
-            id="api_key"
+            name="add_client[client_id]"
+            id="client_id"
             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="gp_..."
-            value={@add_client_form.params["api_key"]}
+            placeholder="Client ID (UUID)"
+            value={@add_client_form.params["client_id"]}
           />
         </div>
         <button
           type="submit"
           class="mt-3 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto"
         >
-          Add Client
+          Subscribe
         </button>
       </.form>
     </div>
@@ -53,7 +53,7 @@
           type="text"
           name="search[query]"
           value={@search_query}
-          placeholder="Search by API key, name, or client ID..."
+          placeholder="Search by name, MAC address, or client ID..."
           class="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
       </div>
@@ -97,16 +97,19 @@
                   Client ID
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                  API Name
+                  Name
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                  API Key
+                  MAC Address
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
                   Status
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
                   Printers
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  IP Addresses
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
                   Last Connected
@@ -120,13 +123,13 @@
               <%= for client <- @clients do %>
                 <tr>
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
-                    <%= client.client_id %>
+                    <span class="font-mono text-xs"><%= String.slice(client.id, 0..7) %>...</span>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                     <%= client.api_name || "-" %>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                    <%= String.slice(client.api_key || "", 0..7) %>...
+                    <%= client.mac_address || "-" %>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm">
                     <%= if client.status == "connected" do %>
@@ -149,6 +152,24 @@
                     <%= length(client.printers || []) %> printer(s)
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= case client.ip_addresses do %>
+                      <% %Ecto.Association.NotLoaded{} -> %>
+                        <span class="text-gray-400">-</span>
+                      <% [] -> %>
+                        <span class="text-gray-400">-</span>
+                      <% nil -> %>
+                        <span class="text-gray-400">-</span>
+                      <% ip_addresses -> %>
+                        <button
+                          phx-click="toggle_ip_details"
+                          phx-value-id={client.id}
+                          class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                          <%= length(ip_addresses) %> IP(s)
+                        </button>
+                    <% end %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                     <%= if client.last_connected_at do %>
                       <%= Calendar.strftime(client.last_connected_at, "%b %d, %Y %I:%M %p") %>
                     <% else %>
@@ -158,12 +179,11 @@
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <div class="flex items-center justify-end gap-2">
                       <button
-                        phx-click="open_test_print"
+                        phx-click="show_client"
                         phx-value-id={client.id}
-                        disabled={client.status != "connected"}
-                        class={"text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 " <> if client.status != "connected", do: "opacity-50 cursor-not-allowed", else: ""}
+                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                       >
-                        Test Print
+                        View
                       </button>
                       <button
                         phx-click="delete_client"
@@ -179,7 +199,7 @@
               <% end %>
               <%= if @clients == [] do %>
                 <tr>
-                  <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <td colspan="8" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                     No clients found
                   </td>
                 </tr>
@@ -205,7 +225,7 @@
               Test Print
             </h3>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Send a test print to <%= @selected_client.client_id %>
+              Send a test print to client <%= String.slice(@selected_client.id, 0..7) %>...
             </p>
           </div>
         </div>
@@ -289,6 +309,331 @@
             </p>
           </div>
         <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Client Details Modal -->
+<%= if @show_client_modal && @client_details do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" phx-click="close_client_modal"></div>
+      
+      <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:p-6">
+        <!-- Header -->
+        <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
+                Client Details
+              </h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <%= @client_details.api_name || "Unnamed Client" %> - <%= String.slice(@client_details.id, 0..7) %>...
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <%= if @client_details.status == "connected" do %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                  <svg class="mr-1 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+                    <circle cx="4" cy="4" r="3" />
+                  </svg>
+                  Connected
+                </span>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                  <svg class="mr-1 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+                    <circle cx="4" cy="4" r="3" />
+                  </svg>
+                  Disconnected
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Content Tabs -->
+        <div class="mt-4">
+          <!-- Basic Info -->
+          <div class="mb-6">
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Basic Information</h4>
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Client ID</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono">
+                  <%= @client_details.id %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">MAC Address</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono">
+                  <%= @client_details.mac_address || "-" %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Connected</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                  <%= if @client_details.last_connected_at do %>
+                    <%= Calendar.strftime(@client_details.last_connected_at, "%b %d, %Y %I:%M %p") %>
+                  <% else %>
+                    Never
+                  <% end %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Operating System</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                  <%= @client_details.operating_system || "-" %>
+                </dd>
+              </div>
+            </dl>
+          </div>
+          
+          <!-- Printers Section -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <%= if @client_details.status == "connected" do %>
+                  Available Printers
+                <% else %>
+                  Last Known Printers <span class="text-xs text-gray-500 dark:text-gray-400">(Client Offline)</span>
+                <% end %>
+              </h4>
+              <%= if @client_details.status == "connected" do %>
+                <button
+                  phx-click="refresh_printers"
+                  phx-value-id={@client_details.id}
+                  disabled={@fetching_printers}
+                  class={"text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 " <> if @fetching_printers, do: "opacity-50 cursor-wait", else: ""}
+                >
+                  <%= if @fetching_printers do %>
+                    <svg class="inline animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Fetching...
+                  <% else %>
+                    Refresh
+                  <% end %>
+                </button>
+              <% end %>
+            </div>
+            
+            <%= if @client_details.printers && length(@client_details.printers) > 0 do %>
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead class="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                      <th scope="col" class="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Printer Name
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Paper Sizes
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700">
+                    <%= for printer <- @client_details.printers do %>
+                      <tr>
+                        <td class="whitespace-nowrap py-3 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white">
+                          <%= printer["name"] || printer["id"] %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <%= if printer["status"] == "ready" do %>
+                            <span class="text-green-600 dark:text-green-400">Ready</span>
+                          <% else %>
+                            <span class="text-gray-500"><%= printer["status"] || "Unknown" %></span>
+                          <% end %>
+                        </td>
+                        <td class="px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <div class="flex flex-wrap gap-1">
+                            <%= for size <- (printer["paper_sizes"] || ["A4", "Letter"]) do %>
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                <%= size %>
+                              </span>
+                            <% end %>
+                          </div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                          <%= if @client_details.status == "connected" do %>
+                            <button
+                              phx-click="test_print_with_printer"
+                              phx-value-client-id={@client_details.id}
+                              phx-value-printer-id={printer["id"]}
+                              phx-value-printer-name={printer["name"] || printer["id"]}
+                              class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                            >
+                              Test Print
+                            </button>
+                          <% else %>
+                            <span class="text-gray-400 dark:text-gray-500">
+                              Client Offline
+                            </span>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="text-center py-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  <%= if @client_details.status == "connected" do %>
+                    No printers detected. Click "Refresh" to fetch the latest printer list.
+                  <% else %>
+                    Client is disconnected. Printers will be shown when the client reconnects.
+                  <% end %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+          
+          <!-- IP Address History -->
+          <div class="mb-6">
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Connection History</h4>
+            <%= if @client_details.ip_addresses && length(@client_details.ip_addresses) > 0 do %>
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead class="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                      <th scope="col" class="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        IP Address
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        First Seen
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Last Seen
+                      </th>
+                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Connections
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700">
+                    <%= for ip <- @client_details.ip_addresses do %>
+                      <tr>
+                        <td class="whitespace-nowrap py-3 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white font-mono">
+                          <%= ip.ip_address %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <%= Calendar.strftime(ip.first_seen, "%b %d, %Y %I:%M %p") %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <%= Calendar.strftime(ip.last_seen, "%b %d, %Y %I:%M %p") %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <%= ip.connection_count %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <p class="text-sm text-gray-500 dark:text-gray-400">No connection history available.</p>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-5 sm:mt-6">
+          <button
+            type="button"
+            phx-click="close_client_modal"
+            class="w-full inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- IP Addresses Modal -->
+<%= if @show_ip_modal && @selected_client do %>
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" phx-click="close_ip_modal"></div>
+      
+      <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+        <div>
+          <div class="mt-3 text-center sm:mt-0 sm:text-left">
+            <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
+              IP Address History
+            </h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Connection history for client <%= String.slice(@selected_client.id, 0..7) %>...
+            </p>
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  IP Address
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  First Seen
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  Last Seen
+                </th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  Connections
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700">
+              <%= for ip <- (@selected_client.ip_addresses || []) do %>
+                <tr>
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white font-mono">
+                    <%= ip.ip_address %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= Calendar.strftime(ip.first_seen, "%b %d, %Y %I:%M %p") %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= Calendar.strftime(ip.last_seen, "%b %d, %Y %I:%M %p") %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <%= ip.connection_count %>
+                  </td>
+                </tr>
+              <% end %>
+              <%= if @selected_client.ip_addresses == [] || is_nil(@selected_client.ip_addresses) do %>
+                <tr>
+                  <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    No IP addresses recorded yet
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-5 sm:mt-6">
+          <button
+            type="button"
+            phx-click="close_ip_modal"
+            class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>

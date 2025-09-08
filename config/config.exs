@@ -65,6 +65,9 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure Flop
+config :flop, repo: GoprintRegistry.Repo
+
 # Configure Ueberauth
 config :ueberauth, Ueberauth,
   providers: [

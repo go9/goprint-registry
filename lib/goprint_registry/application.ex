@@ -12,8 +12,6 @@ defmodule GoprintRegistry.Application do
       GoprintRegistry.Repo,
       {DNSCluster, query: Application.get_env(:goprint_registry, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GoprintRegistry.PubSub},
-      # Start the registry GenServer for managing GoPrint services
-      GoprintRegistry.Registry,
       # Start connection manager for desktop clients
       GoprintRegistry.ConnectionManager,
       # Start job queue for print jobs

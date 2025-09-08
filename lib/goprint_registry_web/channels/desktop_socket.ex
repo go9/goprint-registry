@@ -2,32 +2,64 @@ defmodule GoprintRegistryWeb.DesktopSocket do
   use Phoenix.Socket
 
   channel "desktop:*", GoprintRegistryWeb.DesktopChannel
+  alias GoprintRegistry.Clients
+
+  defp ip_from_connect_info(connect_info, params) do
+    with nil <- Map.get(params, "ip_address"),
+         %{peer_data: %{address: addr}} <- connect_info do
+      case addr do
+        {a, b, c, d} -> "#{a}.#{b}.#{c}.#{d}"
+        {a, b, c, d, e, f, g, h} ->
+          Enum.map([a, b, c, d, e, f, g, h], &Integer.to_string(&1, 16))
+          |> Enum.join(":")
+        _ -> nil
+      end
+    else
+      ip when is_binary(ip) -> ip
+      _ ->
+        # Try X-Forwarded-For if provided in headers connect_info
+        case connect_info[:x_headers] do
+          %{"x-forwarded-for" => ips} -> ips |> String.split(",") |> List.first() |> String.trim()
+          _ -> nil
+        end
+    end
+  end
 
   @impl true
-  def connect(%{"client_id" => client_id, "client_secret" => client_secret}, socket, _connect_info) do
-    # Authenticate the desktop client
-    case authenticate_client(client_id, client_secret) do
-      {:ok, client} ->
-        {:ok, assign(socket, :client, client)}
-      {:error, reason} ->
-        {:error, reason}
+  def connect(%{"ws_token" => token} = params, socket, connect_info) do
+    # Verify the WebSocket token from login
+    case Phoenix.Token.verify(GoprintRegistryWeb.Endpoint, "ws_client", token, max_age: 600) do
+      {:ok, claims} ->
+        client_id = claims["client_id"] || claims[:client_id]
+        
+        if is_nil(client_id) do
+          :error
+        else
+          # Update connection info if provided
+          ip_address = ip_from_connect_info(connect_info || %{}, params)
+          if ip_address, do: Clients.log_ip_address(client_id, ip_address)
+          
+          # Store client info in socket
+          client = %{
+            id: client_id, 
+            connected_at: DateTime.utc_now(),
+            authenticated_at: claims["authenticated_at"] || claims[:authenticated_at]
+          }
+          {:ok, assign(socket, :client, client)}
+        end
+        
+      {:error, :expired} ->
+        {:error, "Token expired. Please login again."}
+        
+      _ ->
+        {:error, "Invalid token"}
     end
   end
 
   def connect(_params, _socket, _connect_info) do
-    {:error, "Missing authentication credentials"}
+    {:error, "Missing WebSocket token. Please login first."}
   end
 
   @impl true
   def id(socket), do: "desktop:#{socket.assigns.client.id}"
-
-  defp authenticate_client(client_id, client_secret) do
-    # For now, generate a client record
-    # In production, validate against stored credentials
-    {:ok, %{
-      id: client_id,
-      secret: client_secret,
-      connected_at: DateTime.utc_now()
-    }}
-  end
 end

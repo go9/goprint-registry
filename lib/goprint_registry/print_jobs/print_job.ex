@@ -3,6 +3,8 @@ defmodule GoprintRegistry.PrintJobs.PrintJob do
   import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  
+  @derive {Jason.Encoder, only: [:id, :job_id, :printer_id, :content, :paper_size, :options, :status, :status_details, :client_id, :user_id, :inserted_at, :updated_at]}
 
   schema "print_jobs" do
     field :job_id, :string

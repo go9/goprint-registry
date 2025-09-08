@@ -1,0 +1,53 @@
+<section class="bg-white dark:bg-gray-900">
+  <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+    <div class="mx-auto max-w-3xl">
+      <h1 class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl dark:text-white">Documentation</h1>
+      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+        Learn how to install the GoPrint agent, register printers, and send print jobs from your application.
+      </p>
+
+      <div class="mt-10 space-y-12">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Quick start</h2>
+          <ol class="mt-4 list-decimal space-y-3 pl-6 text-gray-700 dark:text-gray-300">
+            <li>Download and install the agent from <a href="/download" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">/download</a>.</li>
+            <li>On first launch, the agent calls <code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">POST /api/clients/register</code> and shows a Client ID (UUID).</li>
+            <li>Share the Client ID with your developer (GoCloud user). They can subscribe to the client via API.</li>
+            <li>Register your printers in the agent and name your templates.</li>
+            <li>Send a test job using the REST API or JavaScript client.</li>
+          </ol>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">REST example</h2>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> http://localhost:9377/api/print\n<span class='text-gray-500'>Authorization: Bearer gp_your_api_key</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"template\"</span>: <span class='text-green-400'>\"receipt\"</span>,\n  <span class='text-green-400'>\"html\"</span>: <span class='text-green-400'>\"&lt;h1&gt;Hello, printer!&lt;/h1&gt;\"</span>\n}") %></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">JavaScript example</h2>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-purple-400'>const</span> res = <span class='text-purple-400'>await</span> fetch(<span class='text-green-400'>'http://localhost:9377/api/print'</span>, {\n  <span class='text-blue-300'>method</span>: <span class='text-green-400'>'POST'</span>,\n  <span class='text-blue-300'>headers</span>: {\n    <span class='text-green-400'>'Authorization'</span>: <span class='text-green-400'>'Bearer gp_your_api_key'</span>,\n    <span class='text-green-400'>'Content-Type'</span>: <span class='text-green-400'>'application/json'</span>\n  },\n  <span class='text-blue-300'>body</span>: <span class='text-green-400'>JSON.stringify({ template: 'receipt', html: '<h1>Hello</h1>' })</span>\n});") %></code></pre>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Next steps</h2>
+          <ul class="mt-4 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
+            <li>Set printer-specific margins and paper sizes per template.</li>
+            <li>Use per-printer API keys for least-privilege access.</li>
+            <li>Handle job webhooks to track success/failure.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Subscribe a client (for developers)</h2>
+          <p class="mt-2 text-gray-700 dark:text-gray-300">Associate a client with your account after your end user shares their Client ID with you.</p>
+          <div class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-300">
+            <pre class="overflow-x-auto text-sm leading-6"><code><%= raw("<span class='text-blue-400'>POST</span> https://your-cloud.example.com/clients/subscribe\n<span class='text-gray-500'>Cookie: _goprint_registry_key=... (authenticated session)</span>\n<span class='text-gray-500'>Content-Type: application/json</span>\n\n{\n  <span class='text-green-400'>\"client_id\"</span>: <span class='text-green-400'>\"f9f2e9f4-...\"</span>\n}") %></code></pre>
+          </div>
+        </div>

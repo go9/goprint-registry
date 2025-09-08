@@ -1,75 +1,65 @@
 defmodule GoprintRegistryWeb.RegistryController do
   use GoprintRegistryWeb, :controller
-  require Logger
+  alias GoprintRegistry.{Clients, ConnectionManager}
 
-  @ttl 300 # 5 minutes
-
-  def register(conn, %{"api_key" => api_key, "ip" => ip, "port" => port} = params) do
-    # Store in ETS for now (will add Redis later)
-    data = %{
-      ip: ip,
-      port: port,
-      name: params["name"] || "Unknown",
-      version: params["version"] || "1.0.0",
-      updated_at: DateTime.utc_now() |> DateTime.to_iso8601()
-    }
+  def status(conn, _params) do
+    json(conn, %{
+      status: "healthy",
+      service: "goprint_registry",
+      version: "1.0.0",
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+    })
+  end
+  
+  def debug_connections(conn, _params) do
+    # Get ACTUAL WebSocket connections from ETS
+    websocket_connections = ConnectionManager.list_connections()
     
-    :ets.insert(:goprint_registry, {api_key, data, System.system_time(:second)})
+    # Get all clients from database
+    all_clients = Clients.list_clients()
     
-    Logger.info("GoPrint registered: #{api_key} at #{ip}:#{port}")
+    # Build detailed connection info
+    ws_details = Enum.map(websocket_connections, fn {client_id, data} ->
+      %{
+        client_id: client_id,
+        connected_via: "websocket",
+        connected_at: data.connected_at,
+        last_heartbeat_ms_ago: System.system_time(:millisecond) - data.last_heartbeat,
+        printers: length(data.printers || []),
+        process_alive: Process.alive?(data.pid)
+      }
+    end)
+    
+    # Compare DB status with actual WebSocket status
+    client_comparison = Enum.map(all_clients, fn client ->
+      ws_connected = Enum.any?(websocket_connections, fn {id, _} -> id == client.id end)
+      
+      %{
+        client_id: client.id,
+        api_name: client.api_name,
+        db_status: client.status,
+        actual_ws_connected: ws_connected,
+        last_connected_at: client.last_connected_at,
+        status_mismatch: client.status == "connected" && !ws_connected,
+        should_be: if(ws_connected, do: "connected", else: "disconnected")
+      }
+    end)
+    
+    # Find mismatches
+    mismatches = Enum.filter(client_comparison, & &1.status_mismatch)
     
     json(conn, %{
       success: true,
-      message: "Registered successfully",
-      ttl: @ttl
-    })
-  end
-
-  def register(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required fields: api_key, ip, port"})
-  end
-
-  def lookup(conn, %{"api_key" => api_key}) do
-    case :ets.lookup(:goprint_registry, api_key) do
-      [{^api_key, data, timestamp}] ->
-        # Check if entry is still valid (not older than TTL)
-        now = System.system_time(:second)
-        if now - timestamp < @ttl do
-          json(conn, %{
-            success: true,
-            service: data
-          })
-        else
-          # Entry expired
-          :ets.delete(:goprint_registry, api_key)
-          conn
-          |> put_status(:not_found)
-          |> json(%{error: "Service not found or expired"})
-        end
-      [] ->
-        conn
-        |> put_status(:not_found)
-        |> json(%{error: "Service not found"})
-    end
-  end
-
-  def status(conn, _params) do
-    # Count active services
-    now = System.system_time(:second)
-    active_count = :ets.foldl(
-      fn {_key, _data, timestamp}, acc ->
-        if now - timestamp < @ttl, do: acc + 1, else: acc
-      end,
-      0,
-      :goprint_registry
-    )
-    
-    json(conn, %{
-      active_services: active_count,
-      ttl: @ttl,
-      server_time: DateTime.utc_now() |> DateTime.to_iso8601()
+      summary: %{
+        total_clients_in_db: length(all_clients),
+        active_websockets: length(websocket_connections),
+        db_says_connected: Enum.count(all_clients, & &1.status == "connected"),
+        mismatches: length(mismatches)
+      },
+      active_websocket_connections: ws_details,
+      all_clients: client_comparison,
+      problems: mismatches,
+      note: "Only 'active_websocket_connections' shows real connections. DB status can be wrong."
     })
   end
 end

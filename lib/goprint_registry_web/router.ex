@@ -23,23 +23,23 @@ defmodule GoprintRegistryWeb.Router do
     get "/", PageController, :home
     get "/pricing", PageController, :pricing
     get "/download", PageController, :download
+    get "/docs", PageController, :docs
   end
 
   # API endpoints for GoPrint registry
   scope "/api", GoprintRegistryWeb do
     pipe_through :api
 
-    # Registry endpoints (backward compatibility)
-    post "/register", RegistryController, :register
-    get "/lookup/:api_key", RegistryController, :lookup
+    # Health check endpoint
     get "/status", RegistryController, :status
+    get "/debug/connections", RegistryController, :debug_connections
     
-    # Print job endpoints
-    post "/print", PrintController, :print
-    post "/print/bulk", PrintController, :bulk_print
-    get "/jobs", PrintController, :list_jobs
-    get "/jobs/:job_id", PrintController, :job_status
-    get "/clients", PrintController, :list_clients
+    # Client self-registration endpoints
+    post "/clients/register", ClientController, :register
+    get "/clients/verify/:client_id", ClientController, :verify
+    post "/clients/login", ClientController, :login
+    post "/clients/heartbeat", ClientController, :heartbeat
+    get "/clients/:client_id/printers", ClientController, :get_printers
   end
 
   ## Authentication routes
@@ -48,14 +48,31 @@ defmodule GoprintRegistryWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{GoprintRegistryWeb.UserAuth, :require_authenticated}] do
+      on_mount: [{GoprintRegistryWeb.UserAuth, :require_authenticated}],
+      layout: {GoprintRegistryWeb.Layouts, :app} do
       live "/dashboard", DashboardLive
       live "/clients", ClientsLive.Index, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 
+    # JSON endpoint for developers to subscribe to a client by id
+    post "/clients/subscribe", ClientController, :subscribe
+
     post "/users/update-password", UserSessionController, :update_password
+  end
+
+  ## Admin routes
+  scope "/admin", GoprintRegistryWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user, :require_admin_user]
+
+    live_session :require_admin,
+      on_mount: [{GoprintRegistryWeb.UserAuth, :require_admin}],
+      layout: {GoprintRegistryWeb.Layouts, :app} do
+      live "/", DashboardLive
+      live "/users", UsersLive
+      live "/clients", ClientsLive
+    end
   end
 
   scope "/", GoprintRegistryWeb do

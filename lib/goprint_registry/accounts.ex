@@ -6,7 +6,8 @@ defmodule GoprintRegistry.Accounts do
   import Ecto.Query, warn: false
   alias GoprintRegistry.Repo
 
-  alias GoprintRegistry.Accounts.{User, UserToken, UserNotifier, ApiKey}
+  alias GoprintRegistry.Accounts.{User, UserToken, UserNotifier}
+  alias Flop
 
   ## Database getters
 
@@ -42,6 +43,54 @@ defmodule GoprintRegistry.Accounts do
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
     if User.valid_password?(user, password), do: user
+  end
+
+  @doc """
+  Counts the total number of users.
+  """
+  def count_users do
+    Repo.aggregate(User, :count, :id)
+  end
+
+  @doc """
+  Lists all users.
+  """
+  def list_users do
+    Repo.all(User)
+  end
+
+  @doc """
+  Lists users with Flop pagination and filtering.
+  """
+  def list_users_with_flop(flop \\ %Flop{}) do
+    query = from(u in User, order_by: [desc: u.inserted_at])
+    Flop.run(query, flop, for: User)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing user admin settings.
+  """
+  def change_user_admin(%User{} = user, attrs \\ %{}) do
+    user
+    |> Ecto.Changeset.cast(attrs, [:is_admin])
+  end
+
+  @doc """
+  Updates a user's admin settings.
+  """
+  def update_user_admin(%User{} = user, attrs) do
+    user
+    |> change_user_admin(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a user's admin status.
+  """
+  def update_user_admin_status(%User{} = user, attrs) do
+    user
+    |> Ecto.Changeset.cast(attrs, [:is_admin])
+    |> Repo.update()
   end
 
   @doc """
@@ -306,90 +355,5 @@ defmodule GoprintRegistry.Accounts do
         {:ok, {user, tokens_to_expire}}
       end
     end)
-  end
-
-  ## API Keys
-
-  @doc """
-  Lists all API keys for a user.
-  """
-  def list_user_api_keys(%User{} = user) do
-    ApiKey
-    |> where(user_id: ^user.id)
-    |> where([k], is_nil(k.revoked_at))
-    |> order_by(desc: :inserted_at)
-    |> Repo.all()
-  end
-
-  @doc """
-  Gets an API key by its key value.
-  """
-  def get_api_key_by_key(key) when is_binary(key) do
-    ApiKey
-    |> where(key: ^key)
-    |> where([k], is_nil(k.revoked_at))
-    |> Repo.one()
-  end
-
-  @doc """
-  Gets an API key by ID.
-  """
-  def get_api_key!(id) do
-    Repo.get!(ApiKey, id)
-  end
-
-  @doc """
-  Creates an API key for a user.
-  """
-  def create_api_key(%User{} = user, attrs) do
-    attrs = Map.put(attrs, "user_id", user.id)
-    
-    case ApiKey.creation_changeset(attrs) |> Repo.insert() do
-      {:ok, api_key} ->
-        # Include the virtual secret field in the response
-        {:ok, api_key}
-      error ->
-        error
-    end
-  end
-
-  @doc """
-  Revokes an API key.
-  """
-  def revoke_api_key(%ApiKey{} = api_key) do
-    api_key
-    |> Ecto.Changeset.change(revoked_at: DateTime.utc_now())
-    |> Repo.update()
-  end
-
-  @doc """
-  Updates the last_used_at timestamp for an API key.
-  """
-  def touch_api_key(%ApiKey{} = api_key) do
-    api_key
-    |> Ecto.Changeset.change(last_used_at: DateTime.utc_now())
-    |> Repo.update()
-  end
-
-  @doc """
-  Authenticates using API key and secret.
-  """
-  def authenticate_api_key(key, secret) when is_binary(key) and is_binary(secret) do
-    case get_api_key_by_key(key) do
-      nil ->
-        {:error, :invalid_credentials}
-      
-      api_key ->
-        if ApiKey.verify_secret(secret, api_key.secret_hash) do
-          # Touch the API key to update last_used_at
-          touch_api_key(api_key)
-          
-          # Preload the user
-          api_key = Repo.preload(api_key, :user)
-          {:ok, api_key}
-        else
-          {:error, :invalid_credentials}
-        end
-    end
   end
 end

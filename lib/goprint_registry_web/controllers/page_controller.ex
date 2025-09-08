@@ -12,4 +12,8 @@ defmodule GoprintRegistryWeb.PageController do
   def download(conn, _params) do
     render(conn, :download, layout: {GoprintRegistryWeb.Layouts, :landing})
   end
+
+  def docs(conn, _params) do
+    render(conn, :docs, layout: {GoprintRegistryWeb.Layouts, :landing})
+  end
 end

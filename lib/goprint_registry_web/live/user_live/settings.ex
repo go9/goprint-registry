@@ -6,7 +6,7 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="theme-selector" phx-hook="ThemeSelector">
       <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
           <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
@@ -56,6 +56,69 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
               Change Email
             </button>
           </.form>
+        </div>
+      </div>
+
+      <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+            Theme Preference
+          </h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+            <p>Choose your preferred color theme for the interface.</p>
+          </div>
+          <div class="mt-5">
+            <div class="flex items-center space-x-4">
+              <button
+                type="button"
+                phx-click="set_theme"
+                phx-value-theme="light"
+                class={"inline-flex items-center px-4 py-2 text-sm font-medium rounded-md " <>
+                  if @theme == "light" do
+                    "bg-indigo-600 text-white hover:bg-indigo-500"
+                  else
+                    "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  end}
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+                </svg>
+                Light
+              </button>
+              <button
+                type="button"
+                phx-click="set_theme"
+                phx-value-theme="dark"
+                class={"inline-flex items-center px-4 py-2 text-sm font-medium rounded-md " <>
+                  if @theme == "dark" do
+                    "bg-indigo-600 text-white hover:bg-indigo-500"
+                  else
+                    "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  end}
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+                Dark
+              </button>
+              <button
+                type="button"
+                phx-click="set_theme"
+                phx-value-theme="system"
+                class={"inline-flex items-center px-4 py-2 text-sm font-medium rounded-md " <>
+                  if @theme == "system" do
+                    "bg-indigo-600 text-white hover:bg-indigo-500"
+                  else
+                    "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  end}
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd" />
+                </svg>
+                System
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -190,6 +253,7 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:theme, get_theme_from_cookie(socket))
 
     {:ok, socket, layout: {GoprintRegistryWeb.Layouts, :app}}
   end
@@ -212,9 +276,9 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
 
     case Accounts.change_user_email(user, user_params) do
-      %{valid?: true} = changeset ->
+      %{valid?: true} ->
         # For now, just update the email directly without confirmation
-        case Accounts.update_user_email_direct(user, user_params["email"]) do
+        case Accounts.update_user_email(user, user_params["email"]) do
           {:ok, _updated_user} ->
             {:noreply,
              socket
@@ -261,5 +325,22 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
       {:error, changeset} ->
         {:noreply, assign(socket, :password_form, to_form(changeset, action: :insert))}
     end
+  end
+
+  def handle_event("set_theme", %{"theme" => theme}, socket) do
+    {:noreply,
+     socket
+     |> assign(:theme, theme)
+     |> push_event("set-theme", %{theme: theme})}
+  end
+
+  def handle_event("init-theme", %{"theme" => theme}, socket) do
+    {:noreply, assign(socket, :theme, theme)}
+  end
+
+  defp get_theme_from_cookie(_socket) do
+    # Default to system if no theme is set
+    # The actual theme is stored in localStorage on the client
+    "system"
   end
 end

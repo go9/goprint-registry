@@ -181,16 +181,6 @@
                 class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:lg:bg-white/10"
               >
               </div>
-
-<!-- Dark mode toggle -->
-              <GoprintRegistryWeb.Components.DarkModeToggle.dark_mode_toggle />
-              
-<!-- Separator -->
-              <div
-                aria-hidden="true"
-                class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:lg:bg-white/10"
-              >
-              </div>
               
 <!-- User menu dropdown -->
               <div class="relative">
@@ -211,7 +201,7 @@
                   aria-haspopup="true"
                 >
                   <span class="sr-only">Open user menu</span>
-                  <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                  <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center ring-2 ring-gray-300 dark:ring-gray-600">
                     <span class="text-sm font-medium text-primary-600">
                       {String.first(@current_scope.user.email) |> String.upcase()}
                     </span>

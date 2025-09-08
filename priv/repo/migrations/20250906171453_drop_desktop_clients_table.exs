@@ -1,7 +1,12 @@
-defmodule GoprintRegistry.Repo.Migrations.CreateDesktopClients do
+defmodule GoprintRegistry.Repo.Migrations.DropDesktopClientsTable do
   use Ecto.Migration
 
-  def change do
+  def up do
+    drop_if_exists table(:desktop_clients)
+  end
+
+  def down do
+    # Recreate the table if we need to rollback
     create table(:desktop_clients) do
       add :name, :string, null: false
       add :hostname, :string

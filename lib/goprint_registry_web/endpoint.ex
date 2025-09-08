@@ -19,7 +19,8 @@ defmodule GoprintRegistryWeb.Endpoint do
   socket "/ws", GoprintRegistryWeb.DesktopSocket,
     websocket: [
       check_origin: false,
-      compress: true
+      compress: true,
+      connect_info: [:peer_data, :x_headers]
     ],
     longpoll: false
 

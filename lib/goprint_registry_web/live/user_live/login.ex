@@ -96,14 +96,6 @@ defmodule GoprintRegistryWeb.UserLive.Login do
                 </label>
               </div>
 
-              <div class="text-sm/6">
-                <a
-                  href={~p"/users/reset-password"}
-                  class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
-                  Forgot password?
-                </a>
-              </div>
             </div>
 
             <div>

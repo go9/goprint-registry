@@ -1,6 +1,10 @@
 defmodule GoprintRegistry.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
+  @derive {Flop.Schema,
+           filterable: [:email, :is_admin],
+           sortable: [:email, :inserted_at, :confirmed_at, :is_admin],
+           default_limit: 20}
 
   schema "users" do
     field :email, :string
@@ -9,8 +13,11 @@ defmodule GoprintRegistry.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :is_admin, :boolean, default: false
 
-    has_many :clients, GoprintRegistry.Clients.Client
+    # Many-to-many relationship with clients
+    has_many :client_users, GoprintRegistry.Clients.ClientUser
+    has_many :clients, through: [:client_users, :client]
     has_many :print_jobs, GoprintRegistry.PrintJobs.PrintJob
 
     timestamps(type: :utc_datetime)

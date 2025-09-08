@@ -31,6 +31,14 @@ defmodule GoprintRegistry.JobQueue do
     GenServer.call(__MODULE__, {:create_job, job})
   end
 
+  # New: create a file-based job where `content` is base64 bytes and
+  # MIME/filename are provided via options. Backwards compatible because
+  # we still store the bytes in `content` and metadata in `options`.
+  def create_file_job(developer_api_key, client_id, printer_id, data_base64, mime, filename, options \\ %{}) do
+    opts = options |> Map.put("mime", mime) |> Map.put("filename", filename)
+    create_job(developer_api_key, client_id, printer_id, data_base64, opts)
+  end
+
   def update_job_status(job_id, status, details \\ nil) do
     GenServer.cast(__MODULE__, {:update_status, job_id, status, details})
   end
@@ -117,7 +125,7 @@ defmodule GoprintRegistry.JobQueue do
         :ets.insert(@table_name, {job_id, updated_job})
         Logger.info("Job #{job_id} status updated to #{status}")
       [] ->
-        Logger.warn("Attempted to update status for unknown job #{job_id}")
+        Logger.warning("Attempted to update status for unknown job #{job_id}")
     end
     
     {:noreply, state}

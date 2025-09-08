@@ -4,9 +4,11 @@ defmodule GoprintRegistry.ConnectionManager do
   """
   use GenServer
   require Logger
+  alias GoprintRegistry.Clients
+  alias Phoenix.PubSub
 
   @table_name :desktop_connections
-  @heartbeat_timeout 60_000  # 60 seconds
+  @heartbeat_timeout 30_000  # 30 seconds
 
   # Client API
 
@@ -30,7 +32,7 @@ defmodule GoprintRegistry.ConnectionManager do
     GenServer.cast(__MODULE__, {:update_printers, client_id, printers})
   end
 
-  def get_desktop_client(client_id) do
+  def get_client(client_id) do
     case :ets.lookup(@table_name, client_id) do
       [{^client_id, data}] -> {:ok, data}
       [] -> {:error, :not_found}
@@ -42,8 +44,12 @@ defmodule GoprintRegistry.ConnectionManager do
     |> Enum.map(fn {id, data} -> Map.put(data, :id, id) end)
   end
 
+  def list_connections do
+    :ets.tab2list(@table_name)
+  end
+
   def send_print_job(client_id, job) do
-    case get_desktop_client(client_id) do
+    case get_client(client_id) do
       {:ok, %{pid: pid}} ->
         send(pid, {:print_job, job})
         :ok
@@ -67,6 +73,7 @@ defmodule GoprintRegistry.ConnectionManager do
 
   @impl true
   def handle_call({:register, client_id, pid}, _from, state) do
+    Logger.info("=== ConnectionManager registering client #{client_id} ===")
     data = %{
       pid: pid,
       connected_at: DateTime.utc_now(),
@@ -78,19 +85,42 @@ defmodule GoprintRegistry.ConnectionManager do
     Process.monitor(pid)
     
     :ets.insert(@table_name, {client_id, data})
-    Logger.info("Desktop client registered: #{client_id}")
+    Logger.info("Client #{client_id} added to ETS table with pid #{inspect(pid)}")
+
+    # Update persistent client state and notify associated users
+    case Clients.connect_client(client_id, data.printers) do
+      {:ok, client} ->
+        Logger.info("Client #{client_id} status updated to connected in DB")
+        broadcast_to_users(client_id, {:client_connected, client})
+        Logger.info("Broadcasted connection to associated users")
+      {:error, reason} ->
+        Logger.error("Failed to update client #{client_id} connect status: #{inspect(reason)}")
+        :ok
+    end
     
     {:reply, :ok, Map.put(state, pid, client_id)}
   end
 
   @impl true
   def handle_cast({:unregister, client_id}, state) do
+    Logger.info("=== ConnectionManager unregistering client #{client_id} ===")
     :ets.delete(@table_name, client_id)
-    Logger.info("Desktop client unregistered: #{client_id}")
+    Logger.info("Removed client #{client_id} from ETS table")
+
+    # Persist disconnect and notify associated users
+    case Clients.disconnect_client(client_id) do
+      {:ok, _client} -> 
+        Logger.info("Client #{client_id} status updated to disconnected in DB")
+        broadcast_to_users(client_id, {:client_disconnected, client_id})
+        Logger.info("Broadcasted disconnection to associated users")
+      error -> 
+        Logger.error("Failed to update client #{client_id} disconnect status: #{inspect(error)}")
+        :ok
+    end
     
     # Remove from state
     state = Enum.reduce(state, %{}, fn
-      {pid, cid}, acc when cid == client_id -> acc
+      {_pid, cid}, acc when cid == client_id -> acc
       {pid, cid}, acc -> Map.put(acc, pid, cid)
     end)
     
@@ -117,6 +147,10 @@ defmodule GoprintRegistry.ConnectionManager do
         updated_data = Map.put(data, :printers, printers)
         :ets.insert(@table_name, {client_id, updated_data})
         Logger.info("Updated printer list for #{client_id}: #{length(printers)} printers")
+        # Persist printer list
+        _ = Clients.update_client_printers(client_id, printers)
+        # Notify associated users
+        broadcast_to_users(client_id, {:printers_updated, client_id, printers})
       [] ->
         :ok
     end
@@ -142,7 +176,7 @@ defmodule GoprintRegistry.ConnectionManager do
     )
     
     Enum.each(expired, fn client_id ->
-      Logger.warn("Desktop client #{client_id} timed out")
+      Logger.warning("Client #{client_id} timed out")
       :ets.delete(@table_name, client_id)
     end)
     
@@ -161,7 +195,18 @@ defmodule GoprintRegistry.ConnectionManager do
       client_id ->
         :ets.delete(@table_name, client_id)
         Logger.info("Desktop client #{client_id} process terminated")
+        # Persist disconnect and notify associated users
+        case Clients.disconnect_client(client_id) do
+          {:ok, _} -> broadcast_to_users(client_id, {:client_disconnected, client_id})
+          _ -> :ok
+        end
         {:noreply, Map.delete(state, pid)}
+    end
+  end
+
+  defp broadcast_to_users(client_id, message) do
+    for %{user: user} <- Clients.get_client_users(client_id) do
+      PubSub.broadcast(GoprintRegistry.PubSub, "clients:#{user.id}", message)
     end
   end
 end
