@@ -80,6 +80,7 @@ defmodule GoprintRegistry.MixProject do
       
       # Email
       {:swoosh, "~> 1.4"},
+      {:hackney, "~> 1.9"},
       {:gen_smtp, "~> 1.0"},
       
       # API Documentation

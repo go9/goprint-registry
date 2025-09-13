@@ -58,6 +58,10 @@ defmodule GoprintRegistry.ConnectionManager do
     end
   end
 
+  def request_printers(client_id, timeout \\ 5000) do
+    GenServer.call(__MODULE__, {:request_printers, client_id, timeout}, timeout + 1000)
+  end
+
   # Server callbacks
 
   @impl true
@@ -99,6 +103,29 @@ defmodule GoprintRegistry.ConnectionManager do
     end
     
     {:reply, :ok, Map.put(state, pid, client_id)}
+  end
+
+  @impl true
+  def handle_call({:request_printers, client_id, timeout}, from, state) do
+    case get_client(client_id) do
+      {:ok, %{pid: pid}} ->
+        # Generate a unique request ID
+        request_id = :erlang.unique_integer([:positive, :monotonic])
+        
+        # Store the pending request
+        new_state = Map.put(state, {:printer_request, request_id}, {from, :os.system_time(:millisecond)})
+        
+        # Send request to desktop client with request_id
+        send(pid, {:request_printers, request_id})
+        
+        # Set a timeout to cleanup if no response
+        Process.send_after(self(), {:printer_request_timeout, request_id}, timeout)
+        
+        {:noreply, new_state}
+        
+      {:error, _} ->
+        {:reply, {:error, :not_connected}, state}
+    end
   end
 
   @impl true

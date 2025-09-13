@@ -28,13 +28,13 @@ defmodule GoprintRegistryWeb.ApiSpec do
         
         ## Base URL
         
-        Production: `https://api.goprint.io`
+        Production: `https://goprint.dev/api`
         Development: `http://localhost:4002`
         """
       },
       servers: [
         %{url: "http://localhost:4002", description: "Development server"},
-        %{url: "https://api.goprint.io", description: "Production server"}
+        %{url: "https://goprint.dev", description: "Production server"}
       ],
       paths: %{
         "/api/status" => %{
