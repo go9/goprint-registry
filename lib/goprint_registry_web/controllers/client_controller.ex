@@ -284,22 +284,34 @@ defmodule GoprintRegistryWeb.ClientController do
         |> json(%{success: false, error: "Client not found"})
       
       _client ->
-        # Check if client is connected via WebSocket
-        case GoprintRegistry.ConnectionManager.get_client(client_id) do
-          {:ok, %{printers: printers}} ->
-            # Return cached printers from the connection (if any)
+        # Request printers in real-time from desktop client
+        case GoprintRegistry.ConnectionManager.request_printers(client_id) do
+          {:ok, printers} ->
+            # Return fresh printer list from desktop
             json(conn, %{
               success: true,
               printers: printers,
-              source: "websocket_cache"
+              source: "real_time"
             })
           
-          {:error, :not_found} ->
+          {:error, :not_connected} ->
             # Client not connected via WebSocket
-            json(conn, %{
+            conn
+            |> put_status(:service_unavailable)
+            |> json(%{
               success: false,
               error: "Client not connected",
               message: "Desktop client must be online to fetch printers"
+            })
+            
+          {:error, :timeout} ->
+            # Desktop didn't respond in time
+            conn
+            |> put_status(:request_timeout)
+            |> json(%{
+              success: false,
+              error: "Request timeout",
+              message: "Desktop client did not respond in time"
             })
         end
     end

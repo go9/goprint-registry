@@ -22,8 +22,7 @@ defmodule GoprintRegistryWeb.DesktopChannel do
         # Subscribe to PubSub topic for this client to receive print jobs
         Phoenix.PubSub.subscribe(GoprintRegistry.PubSub, "desktop:#{client.id}")
     
-        # Send initial printer list request
-        send(self(), :request_printer_list)
+        # No longer request printer list on join - it's now on-demand
     
         {:ok, %{status: "connected", client_id: client.id}, socket}
     end
@@ -45,12 +44,17 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   @impl true
   def handle_in("printer_list", params, socket) do
     printers = Map.get(params, "printers", [])
+    request_id = Map.get(params, "request_id")
     client_id = socket.assigns.client.id
     
-    # Store the printer list for this client
-    ConnectionManager.update_printers(client_id, printers)
-    
-    Logger.info("Received printer list from #{client_id}: #{length(printers)} printers")
+    if request_id do
+      # This is a response to a specific request
+      send(ConnectionManager, {:printer_response, request_id, printers})
+      Logger.info("Received printer list response from #{client_id} for request #{request_id}: #{length(printers)} printers")
+    else
+      # Legacy response without request_id - ignore
+      Logger.warn("Received printer list without request_id from #{client_id} - ignoring")
+    end
     
     {:noreply, socket}
   end
@@ -76,16 +80,10 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   end
 
   @impl true
-  def handle_info(:request_printer_list, socket) do
-    push(socket, "get_printers", %{})
-    {:noreply, socket}
-  end
-  
-  @impl true
-  def handle_info({:request_printers, client_id}, socket) do
-    Logger.info("Desktop channel received request_printers for client #{client_id}")
+  def handle_info({:request_printers, request_id}, socket) do
+    Logger.info("Desktop channel requesting printers with request_id #{request_id}")
     # Request fresh printer list from desktop client
-    push(socket, "get_printers", %{request_id: client_id})
+    push(socket, "get_printers", %{request_id: request_id})
     {:noreply, socket}
   end
 

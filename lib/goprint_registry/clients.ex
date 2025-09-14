@@ -276,7 +276,7 @@ defmodule GoprintRegistry.Clients do
   Desktop client connects (update status and timestamp).
   Used when WebSocket connection is established.
   """
-  def connect_client(client_id, printers \\ []) do
+  def connect_client(client_id) do
     case get_client(client_id) do
       nil ->
         {:error, :not_found}
@@ -284,8 +284,7 @@ defmodule GoprintRegistry.Clients do
       client ->
         update_client_connection(client, %{
           status: "connected",
-          last_connected_at: DateTime.utc_now() |> DateTime.truncate(:second),
-          printers: printers
+          last_connected_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
     end
   end
@@ -298,17 +297,6 @@ defmodule GoprintRegistry.Clients do
       nil -> {:error, :not_found}
       client ->
         update_client_connection(client, %{status: "disconnected"})
-    end
-  end
-
-  @doc """
-  Update client printers.
-  """
-  def update_client_printers(client_id, printers) do
-    case get_client(client_id) do
-      nil -> {:error, :not_found}
-      client ->
-        update_client_connection(client, %{printers: printers})
     end
   end
 

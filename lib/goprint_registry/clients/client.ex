@@ -13,7 +13,6 @@ defmodule GoprintRegistry.Clients.Client do
     field :api_name, :string
     field :last_connected_at, :utc_datetime
     field :status, :string, default: "disconnected"
-    field :printers, {:array, :map}, default: []
     
     # Self-registration fields
     field :mac_address, :string
@@ -34,7 +33,7 @@ defmodule GoprintRegistry.Clients.Client do
   @doc false
   def changeset(client, attrs) do
     client
-    |> cast(attrs, [:api_name, :last_connected_at, :status, :printers,
+    |> cast(attrs, [:api_name, :last_connected_at, :status,
                     :mac_address, :operating_system, :app_version, :registered_at])
     |> validate_required([:mac_address])
     |> validate_inclusion(:status, ["connected", "disconnected"])

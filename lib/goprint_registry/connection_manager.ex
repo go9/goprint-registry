@@ -28,9 +28,6 @@ defmodule GoprintRegistry.ConnectionManager do
     GenServer.cast(__MODULE__, {:heartbeat, client_id})
   end
 
-  def update_printers(client_id, printers) do
-    GenServer.cast(__MODULE__, {:update_printers, client_id, printers})
-  end
 
   def get_client(client_id) do
     case :ets.lookup(@table_name, client_id) do
@@ -81,8 +78,7 @@ defmodule GoprintRegistry.ConnectionManager do
     data = %{
       pid: pid,
       connected_at: DateTime.utc_now(),
-      last_heartbeat: System.system_time(:millisecond),
-      printers: []
+      last_heartbeat: System.system_time(:millisecond)
     }
     
     # Monitor the process
@@ -92,7 +88,7 @@ defmodule GoprintRegistry.ConnectionManager do
     Logger.info("Client #{client_id} added to ETS table with pid #{inspect(pid)}")
 
     # Update persistent client state and notify associated users
-    case Clients.connect_client(client_id, data.printers) do
+    case Clients.connect_client(client_id) do
       {:ok, client} ->
         Logger.info("Client #{client_id} status updated to connected in DB")
         broadcast_to_users(client_id, {:client_connected, client})
@@ -167,23 +163,6 @@ defmodule GoprintRegistry.ConnectionManager do
     {:noreply, state}
   end
 
-  @impl true
-  def handle_cast({:update_printers, client_id, printers}, state) do
-    case :ets.lookup(@table_name, client_id) do
-      [{^client_id, data}] ->
-        updated_data = Map.put(data, :printers, printers)
-        :ets.insert(@table_name, {client_id, updated_data})
-        Logger.info("Updated printer list for #{client_id}: #{length(printers)} printers")
-        # Persist printer list
-        _ = Clients.update_client_printers(client_id, printers)
-        # Notify associated users
-        broadcast_to_users(client_id, {:printers_updated, client_id, printers})
-      [] ->
-        :ok
-    end
-    
-    {:noreply, state}
-  end
 
   @impl true
   def handle_info(:check_heartbeats, state) do
@@ -211,6 +190,34 @@ defmodule GoprintRegistry.ConnectionManager do
     Process.send_after(self(), :check_heartbeats, @heartbeat_timeout)
     
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:printer_response, request_id, printers}, state) do
+    case Map.get(state, {:printer_request, request_id}) do
+      {from, _timestamp} ->
+        # Reply to the waiting caller
+        GenServer.reply(from, {:ok, printers})
+        # Clean up the request
+        {:noreply, Map.delete(state, {:printer_request, request_id})}
+      nil ->
+        # Request already timed out or doesn't exist
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info({:printer_request_timeout, request_id}, state) do
+    case Map.get(state, {:printer_request, request_id}) do
+      {from, _timestamp} ->
+        # Reply with timeout error
+        GenServer.reply(from, {:error, :timeout})
+        # Clean up the request
+        {:noreply, Map.delete(state, {:printer_request, request_id})}
+      nil ->
+        # Already handled
+        {:noreply, state}
+    end
   end
 
   @impl true
