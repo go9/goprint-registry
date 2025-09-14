@@ -149,7 +149,7 @@
                     <% end %>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <%= length(client.printers || []) %> printer(s)
+                    <span class="text-gray-400">-</span>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                     <%= case client.ip_addresses do %>
@@ -419,63 +419,69 @@
               <% end %>
             </div>
             
-            <%= if @client_details.printers && length(@client_details.printers) > 0 do %>
-              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+            <!-- Printers list -->
+            <%= if Map.get(@client_details, :printers) do %>
+              <div class="mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead class="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th scope="col" class="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        Printer Name
+                      <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                        Name
                       </th>
-                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                         Status
                       </th>
-                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                         Paper Sizes
-                      </th>
-                      <th scope="col" class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700">
+                  <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                     <%= for printer <- @client_details.printers do %>
                       <tr>
-                        <td class="whitespace-nowrap py-3 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white">
+                        <td class="px-3 py-3 text-sm font-medium text-gray-900 dark:text-white">
                           <%= printer["name"] || printer["id"] %>
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
-                          <%= if printer["status"] == "ready" do %>
-                            <span class="text-green-600 dark:text-green-400">Ready</span>
-                          <% else %>
-                            <span class="text-gray-500"><%= printer["status"] || "Unknown" %></span>
+                          <%= if printer["is_default"] do %>
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              Default
+                            </span>
                           <% end %>
                         </td>
                         <td class="px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
-                          <div class="flex flex-wrap gap-1">
-                            <%= for size <- (printer["paper_sizes"] || ["A4", "Letter"]) do %>
-                              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                <%= size %>
-                              </span>
+                          <%= if printer["status"] == "ready" do %>
+                            <span class="text-green-600 dark:text-green-400">Ready</span>
+                          <% else %>
+                            <%= printer["status"] || "Unknown" %>
+                          <% end %>
+                        </td>
+                        <td class="px-3 py-3 text-sm text-gray-500 dark:text-gray-400">
+                          <div class="max-w-md">
+                            <%= if is_list(printer["paper_sizes"]) && length(printer["paper_sizes"]) > 0 do %>
+                              <div class="flex flex-wrap gap-1">
+                                <%= for size <- Enum.take(printer["paper_sizes"], 5) do %>
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    <%= if is_map(size) do %>
+                                      <%= size["code"] || "Unknown" %>
+                                      <%= if size["width_mm"] && size["height_mm"] do %>
+                                        <span class="ml-1 text-gray-500">
+                                          (<%= size["width_mm"] %>×<%= size["height_mm"] %>mm)
+                                        </span>
+                                      <% end %>
+                                    <% else %>
+                                      <%= size %>
+                                    <% end %>
+                                  </span>
+                                <% end %>
+                                <%= if length(printer["paper_sizes"]) > 5 do %>
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-gray-500">
+                                    +<%= length(printer["paper_sizes"]) - 5 %> more
+                                  </span>
+                                <% end %>
+                              </div>
+                            <% else %>
+                              <span class="text-gray-400">No paper sizes configured</span>
                             <% end %>
                           </div>
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
-                          <%= if @client_details.status == "connected" do %>
-                            <button
-                              phx-click="test_print_with_printer"
-                              phx-value-client-id={@client_details.id}
-                              phx-value-printer-id={printer["id"]}
-                              phx-value-printer-name={printer["name"] || printer["id"]}
-                              class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                            >
-                              Test Print
-                            </button>
-                          <% else %>
-                            <span class="text-gray-400 dark:text-gray-500">
-                              Client Offline
-                            </span>
-                          <% end %>
                         </td>
                       </tr>
                     <% end %>
@@ -483,17 +489,8 @@
                 </table>
               </div>
             <% else %>
-              <div class="text-center py-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  <%= if @client_details.status == "connected" do %>
-                    No printers detected. Click "Refresh" to fetch the latest printer list.
-                  <% else %>
-                    Client is disconnected. Printers will be shown when the client reconnects.
-                  <% end %>
-                </p>
+              <div class="mt-6 text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+                <p>No printers found. Click "Refresh" above to fetch the printer list.</p>
               </div>
             <% end %>
           </div>

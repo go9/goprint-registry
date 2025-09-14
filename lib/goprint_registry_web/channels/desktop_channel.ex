@@ -60,6 +60,23 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   end
 
   @impl true
+  def handle_in("printer_response", params, socket) do
+    printers = Map.get(params, "printers", [])
+    request_id = Map.get(params, "request_id")
+    client_id = socket.assigns.client.id
+    
+    if request_id do
+      # This is a response to a specific request
+      send(ConnectionManager, {:printer_response, request_id, printers})
+      Logger.info("Received printer response from #{client_id} for request #{request_id}: #{length(printers)} printers")
+    else
+      Logger.warn("Received printer response without request_id from #{client_id}")
+    end
+    
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_in("job_status", %{"job_id" => job_id, "status" => status} = payload, socket) do
     # Update job status
     details = Map.get(payload, "details")
@@ -83,7 +100,7 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   def handle_info({:request_printers, request_id}, socket) do
     Logger.info("Desktop channel requesting printers with request_id #{request_id}")
     # Request fresh printer list from desktop client
-    push(socket, "get_printers", %{request_id: request_id})
+    push(socket, "request_printers", %{request_id: request_id})
     {:noreply, socket}
   end
 

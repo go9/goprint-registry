@@ -241,6 +241,123 @@ defmodule GoprintRegistryWeb.ApiSpec do
             }
           }
         },
+        "/api/clients/{client_id}/printers" => %{
+          "get" => %{
+            tags: ["Clients"],
+            summary: "Get client printers",
+            description: "Get a list of printers available on a specific client, including paper sizes with dimensions",
+            operationId: "getClientPrinters",
+            parameters: [
+              %{
+                name: "client_id",
+                in: "path",
+                required: true,
+                description: "Client ID",
+                schema: %{type: "string", format: "uuid"}
+              }
+            ],
+            responses: %{
+              "200" => %{
+                description: "List of printers with paper sizes",
+                content: %{
+                  "application/json" => %{
+                    schema: %{
+                      type: "object",
+                      properties: %{
+                        success: %{type: "boolean"},
+                        source: %{
+                          type: "string",
+                          enum: ["real_time", "cached"],
+                          description: "Whether printers were fetched in real-time or from cache"
+                        },
+                        printers: %{
+                          type: "array",
+                          items: %{
+                            type: "object",
+                            properties: %{
+                              id: %{type: "string", description: "Printer identifier"},
+                              name: %{type: "string", description: "Printer display name"},
+                              status: %{
+                                type: "string",
+                                enum: ["idle", "busy", "offline", "error"],
+                                description: "Current printer status"
+                              },
+                              paper_sizes: %{
+                                type: "array",
+                                description: "Available paper sizes with dimensions",
+                                items: %{
+                                  type: "object",
+                                  properties: %{
+                                    code: %{
+                                      type: "string",
+                                      description: "Paper size code (e.g., 'A4', 'Letter', '30252')"
+                                    },
+                                    width_mm: %{
+                                      type: "number",
+                                      format: "float",
+                                      description: "Paper width in millimeters"
+                                    },
+                                    height_mm: %{
+                                      type: "number", 
+                                      format: "float",
+                                      description: "Paper height in millimeters"
+                                    },
+                                    width_in: %{
+                                      type: "number",
+                                      format: "float",
+                                      description: "Paper width in inches (rounded to 2 decimal places)"
+                                    },
+                                    height_in: %{
+                                      type: "number",
+                                      format: "float",
+                                      description: "Paper height in inches (rounded to 2 decimal places)"
+                                    }
+                                  },
+                                  required: ["code"]
+                                }
+                              }
+                            },
+                            required: ["id", "name", "status"]
+                          }
+                        }
+                      },
+                      required: ["success", "printers"]
+                    }
+                  }
+                }
+              },
+              "404" => %{
+                description: "Client not found",
+                content: %{
+                  "application/json" => %{
+                    schema: %{
+                      type: "object",
+                      properties: %{
+                        success: %{type: "boolean"},
+                        error: %{type: "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "408" => %{
+                description: "Request timeout - desktop client did not respond",
+                content: %{
+                  "application/json" => %{
+                    schema: %{
+                      type: "object",
+                      properties: %{
+                        success: %{type: "boolean"},
+                        error: %{type: "string"},
+                        message: %{type: "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "/api/print_jobs" => %{
           "get" => %{
             tags: ["Print Jobs"],

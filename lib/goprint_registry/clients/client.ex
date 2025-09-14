@@ -51,7 +51,7 @@ defmodule GoprintRegistry.Clients.Client do
 
   def connection_changeset(client, attrs) do
     client
-    |> cast(attrs, [:last_connected_at, :status, :printers])
+    |> cast(attrs, [:last_connected_at, :status])
     |> validate_inclusion(:status, ["connected", "disconnected"])
   end
 end
