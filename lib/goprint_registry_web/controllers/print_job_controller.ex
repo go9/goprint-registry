@@ -229,9 +229,16 @@ defmodule GoprintRegistryWeb.PrintJobController do
   end
 
   defp infer_filename("application/pdf"), do: "document.pdf"
+  defp infer_filename("image/png"), do: "image.png"
+  defp infer_filename("image/jpeg"), do: "image.jpg"
+  defp infer_filename("image/gif"), do: "image.gif"
+  defp infer_filename("image/tiff"), do: "image.tiff"
+  defp infer_filename("image/bmp"), do: "image.bmp"
+  defp infer_filename("text/plain"), do: "document.txt"
+  defp infer_filename("text/html"), do: "document.html"
   defp infer_filename(mime) when is_binary(mime) do
-    base = String.replace(mime, "/", ".")
-    base <> ".bin"
+    # Generic fallback
+    "document.bin"
   end
 
   defp fetch_required(map, key) do
