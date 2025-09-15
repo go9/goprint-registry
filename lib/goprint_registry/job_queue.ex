@@ -96,7 +96,7 @@ defmodule GoprintRegistry.JobQueue do
     # Store the job
     :ets.insert(@table_name, {job.id, job})
     
-    # Send to desktop client
+    # Send to desktop client (only send the formatted data, not the full job struct)
     case GoprintRegistry.ConnectionManager.send_print_job(job.client_id, format_job_for_desktop(job)) do
       :ok ->
         Logger.info("Print job #{job.id} sent to client #{job.client_id}")

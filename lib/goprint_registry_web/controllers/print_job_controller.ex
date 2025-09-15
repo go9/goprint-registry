@@ -151,7 +151,14 @@ defmodule GoprintRegistryWeb.PrintJobController do
         }) do
           {:ok, print_job} ->
             # Try real-time push to desktop; if not connected, job remains queued
-            send_result = ConnectionManager.send_print_job(client_id, Map.from_struct(print_job))
+            # Format the job data for the desktop client
+            job_data = %{
+              job_id: print_job.job_id,
+              printer_id: print_job.printer_id,
+              content: print_job.content,
+              options: print_job.options
+            }
+            send_result = ConnectionManager.send_print_job(client_id, job_data)
             status = case send_result do
               :ok -> "sent"
               {:error, _} -> "queued"
