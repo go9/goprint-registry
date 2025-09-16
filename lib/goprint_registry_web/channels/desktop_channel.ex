@@ -12,7 +12,6 @@ defmodule GoprintRegistryWeb.DesktopChannel do
     # or it must have been registered previously via HTTP.
     case Clients.get_client(client.id) do
       nil ->
-        Logger.warning("Rejecting join for unknown client #{client.id}")
         {:error, %{reason: "unknown_client"}}
       _ ->
 
@@ -45,15 +44,10 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   def handle_in("printer_list", params, socket) do
     printers = Map.get(params, "printers", [])
     request_id = Map.get(params, "request_id")
-    client_id = socket.assigns.client.id
     
     if request_id do
       # This is a response to a specific request
       send(ConnectionManager, {:printer_response, request_id, printers})
-      Logger.info("Received printer list response from #{client_id} for request #{request_id}: #{length(printers)} printers")
-    else
-      # Legacy response without request_id - ignore
-      Logger.warn("Received printer list without request_id from #{client_id} - ignoring")
     end
     
     {:noreply, socket}
@@ -63,14 +57,10 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   def handle_in("printer_response", params, socket) do
     printers = Map.get(params, "printers", [])
     request_id = Map.get(params, "request_id")
-    client_id = socket.assigns.client.id
     
     if request_id do
       # This is a response to a specific request
       send(ConnectionManager, {:printer_response, request_id, printers})
-      Logger.info("Received printer response from #{client_id} for request #{request_id}: #{length(printers)} printers")
-    else
-      Logger.warn("Received printer response without request_id from #{client_id}")
     end
     
     {:noreply, socket}
@@ -85,20 +75,16 @@ defmodule GoprintRegistryWeb.DesktopChannel do
     # Notify developer who submitted the job
     JobQueue.notify_job_status(job_id, status, details)
     
-    Logger.info("Job #{job_id} status: #{status}")
-    
     {:noreply, socket}
   end
 
   @impl true
-  def handle_in(event, payload, socket) do
-    Logger.debug("Received unknown event #{event}: #{inspect(payload)}")
+  def handle_in(_event, _payload, socket) do
     {:noreply, socket}
   end
 
   @impl true
   def handle_info({:request_printers, request_id}, socket) do
-    Logger.info("Desktop channel requesting printers with request_id #{request_id}")
     # Request fresh printer list from desktop client
     push(socket, "request_printers", %{request_id: request_id})
     {:noreply, socket}
@@ -106,22 +92,15 @@ defmodule GoprintRegistryWeb.DesktopChannel do
 
   @impl true
   def handle_info({:print_job, job}, socket) do
-    Logger.info("Desktop channel forwarding print job #{inspect(job[:job_id])} to client #{socket.assigns.client.id}")
-    
     # Forward print job to desktop client
     push(socket, "print_job", job)
-    
-    Logger.info("Print job #{inspect(job[:job_id])} pushed to desktop client via WebSocket")
     {:noreply, socket}
   end
 
   @impl true
-  def terminate(reason, socket) do
+  def terminate(_reason, socket) do
     client_id = socket.assigns.client.id
-    Logger.info("=== Desktop channel terminate called ===")
-    Logger.info("Client #{client_id} disconnecting, reason: #{inspect(reason)}")
     ConnectionManager.unregister_desktop(client_id)
-    Logger.info("Desktop client #{client_id} unregistered from ConnectionManager")
     :ok
   end
 end

@@ -713,7 +713,7 @@ defmodule GoprintRegistryWeb.ApiSpec do
                 type: "object",
                 properties: %{
                   document_name: %{type: "string"},
-                  page_size: %{type: "string", enum: ["A4", "Letter", "Legal"], default: "A4"},
+                  page_size: %{type: "string", description: "Paper size - depends on printer capabilities"},
                   copies: %{type: "integer", minimum: 1, default: 1},
                   color: %{type: "boolean", default: true},
                   duplex: %{type: "boolean", default: false}

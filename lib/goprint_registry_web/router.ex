@@ -49,6 +49,7 @@ defmodule GoprintRegistryWeb.Router do
     post "/clients/login", ClientController, :login
     post "/clients/heartbeat", ClientController, :heartbeat
     get "/clients/:client_id/printers", ClientController, :get_printers
+    get "/clients/:client_id/printers/:printer_id/capabilities", ClientController, :get_printer_capabilities
     post "/clients/:client_id/test-print", ClientController, :test_print
 
     # Developer endpoints (require authenticated user session/API token)

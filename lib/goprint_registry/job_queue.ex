@@ -76,10 +76,9 @@ defmodule GoprintRegistry.JobQueue do
     Enum.sort_by(jobs, & &1.created_at, {:desc, DateTime})
   end
 
-  def notify_job_status(job_id, status, details) do
+  def notify_job_status(_job_id, _status, _details) do
     # This would notify the developer via webhook or other mechanism
-    # For now, just log it
-    Logger.info("Job #{job_id} status update: #{status} - #{inspect(details)}")
+    # TODO: Implement webhook notifications
   end
 
   # Server callbacks
@@ -87,7 +86,6 @@ defmodule GoprintRegistry.JobQueue do
   @impl true
   def init(_) do
     :ets.new(@table_name, [:set, :public, :named_table])
-    Logger.info("JobQueue started")
     {:ok, %{}}
   end
 
@@ -99,7 +97,6 @@ defmodule GoprintRegistry.JobQueue do
     # Send to desktop client (only send the formatted data, not the full job struct)
     case GoprintRegistry.ConnectionManager.send_print_job(job.client_id, format_job_for_desktop(job)) do
       :ok ->
-        Logger.info("Print job #{job.id} sent to client #{job.client_id}")
         {:reply, {:ok, job.id}, state}
       {:error, reason} ->
         # Update job status to failed
@@ -123,9 +120,9 @@ defmodule GoprintRegistry.JobQueue do
           updated_at: DateTime.utc_now()
         })
         :ets.insert(@table_name, {job_id, updated_job})
-        Logger.info("Job #{job_id} status updated to #{status}")
       [] ->
-        Logger.warning("Attempted to update status for unknown job #{job_id}")
+        # Unknown job ID, ignore
+        :ok
     end
     
     {:noreply, state}
