@@ -17,6 +17,13 @@ defmodule GoprintRegistry.Services.PrintJobService do
          {:ok, mime} <- fetch_param(params, "mime"),
          :ok <- verify_client_access(user.id, client_id) do
       
+      require Logger
+      Logger.info("PrintJobService: Creating print job", 
+        client_id: client_id, 
+        printer_id: printer_id,
+        user_id: user.id
+      )
+      
       create_and_send_job(user.id, client_id, printer_id, data_b64, mime, params)
     end
   end
@@ -122,7 +129,20 @@ defmodule GoprintRegistry.Services.PrintJobService do
   defp create_and_dispatch_job(attrs) do
     case PrintJobs.create_print_job(attrs) do
       {:ok, print_job} ->
+        require Logger
+        Logger.info("Print job created in database", 
+          job_id: print_job.job_id,
+          client_id: print_job.client_id,
+          printer_id: print_job.printer_id
+        )
+        
         status = dispatch_to_client(print_job)
+        
+        Logger.info("Print job dispatch completed", 
+          job_id: print_job.job_id,
+          status: status
+        )
+        
         {:ok, %{
           success: true,
           job_id: print_job.job_id,
@@ -130,6 +150,7 @@ defmodule GoprintRegistry.Services.PrintJobService do
         }}
       
       {:error, changeset} ->
+        require Logger
         Logger.error("Failed to create print job: #{inspect(changeset.errors)}")
         {:error, :bad_request, "Invalid request: #{inspect(changeset.errors)}"}
     end
@@ -143,9 +164,16 @@ defmodule GoprintRegistry.Services.PrintJobService do
       options: print_job.options
     }
     
+    require Logger
+    Logger.info("Dispatching print job to client", client_id: print_job.client_id, job_data: job_data)
+    
     case ConnectionManager.send_print_job(print_job.client_id, job_data) do
-      :ok -> "sent"
-      {:error, _} -> "queued"
+      :ok -> 
+        Logger.info("Print job sent successfully to client")
+        "sent"
+      {:error, reason} -> 
+        Logger.warning("Print job queued, client not connected", reason: reason)
+        "queued"
     end
   end
 

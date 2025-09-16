@@ -16,6 +16,8 @@ defmodule GoprintRegistryWeb.DesktopChannel do
       _ ->
 
         # Register this desktop client
+        require Logger
+        Logger.info("DesktopChannel: Registering client", client_id: client.id)
         ConnectionManager.register_desktop(client.id, self())
         
         # Subscribe to PubSub topic for this client to receive print jobs
@@ -93,7 +95,21 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   @impl true
   def handle_info({:print_job, job}, socket) do
     # Forward print job to desktop client
-    push(socket, "print_job", job)
+    require Logger
+    Logger.info("DesktopChannel: Forwarding print job to desktop client", 
+      job_id: job[:job_id], 
+      client_id: socket.assigns[:client_id] || socket.assigns[:client][:id],
+      printer_id: job[:printer_id],
+      socket_pid: inspect(self())
+    )
+    
+    result = push(socket, "print_job", job)
+    
+    Logger.info("DesktopChannel: Push result", 
+      result: inspect(result),
+      job_id: job[:job_id]
+    )
+    
     {:noreply, socket}
   end
 

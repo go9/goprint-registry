@@ -56,7 +56,7 @@ defmodule GoprintRegistryWeb.Router do
     # Client management
     get "/clients", ClientController, :list_user_clients
     get "/clients/:client_id", ClientController, :get_client_details
-    post "/clients/subscribe", ClientController, :subscribe_client
+    post "/clients/subscribe", ClientController, :subscribe
     delete "/clients/:client_id/unsubscribe", ClientController, :unsubscribe_client
     
     # Print job endpoints
@@ -81,9 +81,6 @@ defmodule GoprintRegistryWeb.Router do
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/users/api-keys", UserLive.ApiKeys, :index
     end
-
-    # JSON endpoint for developers to subscribe to a client by id
-    post "/clients/subscribe", ClientController, :subscribe
 
     post "/users/update-password", UserSessionController, :update_password
   end

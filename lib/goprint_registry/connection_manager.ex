@@ -30,6 +30,15 @@ defmodule GoprintRegistry.ConnectionManager do
 
 
   def get_client(client_id) do
+    require Logger
+    
+    # Log all connected clients for debugging
+    all_clients = :ets.tab2list(@table_name)
+    Logger.info("ConnectionManager: Looking for client", 
+      looking_for: client_id, 
+      connected_clients: Enum.map(all_clients, fn {id, _} -> id end)
+    )
+    
     case :ets.lookup(@table_name, client_id) do
       [{^client_id, data}] -> {:ok, data}
       [] -> {:error, :not_found}
@@ -46,11 +55,16 @@ defmodule GoprintRegistry.ConnectionManager do
   end
 
   def send_print_job(client_id, job) do
+    require Logger
+    Logger.info("ConnectionManager: Attempting to send print job", client_id: client_id, job_id: job[:job_id])
+    
     case get_client(client_id) do
       {:ok, %{pid: pid}} ->
+        Logger.info("ConnectionManager: Client found, sending job to pid", pid: inspect(pid))
         send(pid, {:print_job, job})
         :ok
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.warning("ConnectionManager: Client not found", client_id: client_id, reason: reason)
         {:error, "Desktop client not connected"}
     end
   end
@@ -77,6 +91,12 @@ defmodule GoprintRegistry.ConnectionManager do
 
   @impl true
   def handle_call({:register, client_id, pid}, _from, state) do
+    require Logger
+    Logger.info("ConnectionManager: Registering client", 
+      client_id: client_id,
+      pid: inspect(pid)
+    )
+    
     data = %{
       pid: pid,
       connected_at: DateTime.utc_now(),
@@ -87,6 +107,10 @@ defmodule GoprintRegistry.ConnectionManager do
     Process.monitor(pid)
     
     :ets.insert(@table_name, {client_id, data})
+    
+    Logger.info("ConnectionManager: Client registered successfully", 
+      client_id: client_id
+    )
 
     # Update persistent client state and notify associated users
     case Clients.connect_client(client_id) do
@@ -215,12 +239,18 @@ defmodule GoprintRegistry.ConnectionManager do
   end
 
   @impl true
-  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+  def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
+    require Logger
     # Process died, remove from registry
     case Map.get(state, pid) do
       nil -> 
         {:noreply, state}
       client_id ->
+        Logger.warning("ConnectionManager: Client disconnected", 
+          client_id: client_id,
+          pid: inspect(pid),
+          reason: inspect(reason)
+        )
         :ets.delete(@table_name, client_id)
         # Persist disconnect and notify associated users
         case Clients.disconnect_client(client_id) do

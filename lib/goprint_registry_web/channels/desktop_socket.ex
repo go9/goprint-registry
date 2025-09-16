@@ -27,12 +27,17 @@ defmodule GoprintRegistryWeb.DesktopSocket do
 
   @impl true
   def connect(%{"ws_token" => token} = params, socket, connect_info) do
+    require Logger
+    Logger.info("DesktopSocket: Connection attempt with token")
+    
     # Verify the WebSocket token from login
     case Phoenix.Token.verify(GoprintRegistryWeb.Endpoint, "ws_client", token, max_age: 600) do
       {:ok, claims} ->
         client_id = claims["client_id"] || claims[:client_id]
+        Logger.info("DesktopSocket: Token verified", client_id: client_id)
         
         if is_nil(client_id) do
+          Logger.error("DesktopSocket: No client_id in token claims")
           :error
         else
           # Update connection info if provided
@@ -45,18 +50,23 @@ defmodule GoprintRegistryWeb.DesktopSocket do
             connected_at: DateTime.utc_now(),
             authenticated_at: claims["authenticated_at"] || claims[:authenticated_at]
           }
+          Logger.info("DesktopSocket: Connection accepted", client_id: client_id)
           {:ok, assign(socket, :client, client)}
         end
         
       {:error, :expired} ->
+        Logger.error("DesktopSocket: Token expired")
         {:error, "Token expired. Please login again."}
         
-      _ ->
+      error ->
+        Logger.error("DesktopSocket: Invalid token", error: inspect(error))
         {:error, "Invalid token"}
     end
   end
 
-  def connect(_params, _socket, _connect_info) do
+  def connect(params, _socket, _connect_info) do
+    require Logger
+    Logger.error("DesktopSocket: Connection attempt without ws_token", params: inspect(params))
     {:error, "Missing WebSocket token. Please login first."}
   end
 

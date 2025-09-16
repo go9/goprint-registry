@@ -78,10 +78,26 @@ defmodule GoprintRegistryWeb.PrintJobController do
   
   # POST /api/print_jobs/file
   def create_file(conn, params) do
+    user_id = case conn.assigns[:current_scope] do
+      %{user: %{id: id}} -> id
+      _ -> nil
+    end
+    
+    Logger.info("PrintJobController: Received print job request", 
+      user_id: user_id,
+      client_id: params["client_id"],
+      printer_id: params["printer_id"],
+      has_data: params["data_base64"] != nil
+    )
+    
     case conn.assigns[:current_scope] do
       %{user: user} when not is_nil(user) ->
         case PrintJobService.create_from_file(user, params) do
           {:ok, response} ->
+            Logger.info("PrintJobController: Print job created successfully", 
+              job_id: response[:job_id],
+              status: response[:status]
+            )
             conn
             |> put_status(:created)
             |> json(response)
