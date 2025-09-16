@@ -6,26 +6,43 @@ defmodule GoprintRegistryWeb.DesktopChannel do
 
   @impl true
   def join("desktop:lobby", _params, socket) do
-    client = socket.assigns.client
-    # Defensive: refuse join if the client record does not exist.
-    # Cloud should either have auto-provisioned it in socket connect
-    # or it must have been registered previously via HTTP.
-    case Clients.get_client(client.id) do
-      nil ->
-        {:error, %{reason: "unknown_client"}}
-      _ ->
-
-        # Register this desktop client
-        require Logger
-        Logger.info("DesktopChannel: Registering client", client_id: client.id)
-        ConnectionManager.register_desktop(client.id, self())
-        
-        # Subscribe to PubSub topic for this client to receive print jobs
-        Phoenix.PubSub.subscribe(GoprintRegistry.PubSub, "desktop:#{client.id}")
+    require Logger
+    Logger.info("DesktopChannel: Join attempt for desktop:lobby")
     
-        # No longer request printer list on join - it's now on-demand
+    client = socket.assigns[:client]
     
-        {:ok, %{status: "connected", client_id: client.id}, socket}
+    if is_nil(client) do
+      Logger.error("DesktopChannel: No client in socket assigns")
+      {:error, %{reason: "no_client_in_socket"}}
+    else
+      Logger.info("DesktopChannel: Client found in socket", client_id: client.id)
+      
+      # Defensive: refuse join if the client record does not exist.
+      # Cloud should either have auto-provisioned it in socket connect
+      # or it must have been registered previously via HTTP.
+      case Clients.get_client(client.id) do
+        nil ->
+          Logger.error("DesktopChannel: Client not found in database", client_id: client.id)
+          {:error, %{reason: "unknown_client"}}
+        db_client ->
+          Logger.info("DesktopChannel: Client found in database", client_id: client.id)
+          
+          # Register this desktop client
+          Logger.info("DesktopChannel: Registering client with ConnectionManager", client_id: client.id)
+          case ConnectionManager.register_desktop(client.id, self()) do
+            :ok ->
+              Logger.info("DesktopChannel: Successfully registered with ConnectionManager", client_id: client.id)
+            error ->
+              Logger.error("DesktopChannel: Failed to register with ConnectionManager", client_id: client.id, error: inspect(error))
+          end
+          
+          # Subscribe to PubSub topic for this client to receive print jobs
+          Phoenix.PubSub.subscribe(GoprintRegistry.PubSub, "desktop:#{client.id}")
+      
+          # No longer request printer list on join - it's now on-demand
+      
+          {:ok, %{status: "connected", client_id: client.id}, socket}
+      end
     end
   end
 
