@@ -169,6 +169,8 @@ defmodule GoprintRegistry.Services.PrintJobService do
     
     case ConnectionManager.send_print_job(print_job.client_id, job_data) do
       :ok -> 
+        # Mark DB job as 'sent'
+        _ = GoprintRegistry.PrintJobs.update_job_status(print_job, "sent")
         Logger.info("Print job sent successfully to client")
         "sent"
       {:error, reason} -> 

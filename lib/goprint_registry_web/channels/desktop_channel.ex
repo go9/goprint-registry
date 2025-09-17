@@ -87,9 +87,29 @@ defmodule GoprintRegistryWeb.DesktopChannel do
 
   @impl true
   def handle_in("job_status", %{"job_id" => job_id, "status" => status} = payload, socket) do
-    # Update job status
+    # Update in-memory queue status
     details = Map.get(payload, "details")
     JobQueue.update_job_status(job_id, status, details)
+
+    # Also update persistent DB status when possible
+    try do
+      case GoprintRegistry.PrintJobs.get_print_job_by_job_id(job_id) do
+        nil -> :ok
+        job ->
+          db_status = case status do
+            "received" -> "acknowledged"
+            "completed" -> "completed"
+            "error" -> "failed"
+            other -> other
+          end
+          # Only update if mapped status is valid string
+          if is_binary(db_status) do
+            _ = GoprintRegistry.PrintJobs.update_job_status(job, db_status, details)
+          end
+      end
+    rescue e ->
+      Logger.error("Failed to persist job status update", error: inspect(e), job_id: job_id, status: status)
+    end
     
     # Notify developer who submitted the job
     JobQueue.notify_job_status(job_id, status, details)

@@ -71,7 +71,7 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base,
-    check_origin: ["https://goprint.dev", "https://www.goprint.dev", "https://goprint-registry.fly.dev", "https://*.fly.dev"]
+    check_origin: ["https://goprint.dev", "https://www.goprint.dev"]
 
   # ## SSL Support
   #

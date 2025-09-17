@@ -201,7 +201,14 @@ defmodule GoprintRegistry.ConnectionManager do
     )
     
     Enum.each(expired, fn client_id ->
+      # Remove from in-memory table
       :ets.delete(@table_name, client_id)
+
+      # Persist disconnect and notify associated users to avoid stale "connected" state
+      case Clients.disconnect_client(client_id) do
+        {:ok, _client} -> broadcast_to_users(client_id, {:client_disconnected, client_id})
+        error -> Logger.error("Failed to update client disconnect on heartbeat timeout", client_id: client_id, error: inspect(error))
+      end
     end)
     
     # Schedule next check
