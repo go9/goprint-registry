@@ -165,26 +165,48 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       # Log for debugging
       require Logger
       Logger.debug("Attempting to refresh printers for client: #{client_id}")
-      
-      # Try to send the request directly to the desktop channel process
-      case GoprintRegistry.ConnectionManager.get_client(client_id) do
-        {:ok, %{pid: channel_pid} = client_info} ->
-          Logger.debug("Found client in ConnectionManager: #{inspect(client_info)}")
-          # Send message directly to the desktop channel process
-          send(channel_pid, {:request_printers, client_id})
-          
-          # Set a timeout to stop fetching if no response
-          Process.send_after(self(), {:printer_fetch_timeout, client_id}, 5000)
-          
-          {:noreply, assign(socket, :fetching_printers, true)}
-        
-        {:error, _reason} ->
+
+      # Use ConnectionManager to properly request printers
+      case ConnectionManager.request_printers(client_id) do
+        {:ok, printers} ->
+          Logger.debug("Received printers for client #{client_id}: #{length(printers)} printers")
+
+          # Update the client details with the new printer list
+          client_details = if socket.assigns.client_details do
+            Map.put(socket.assigns.client_details, :printers, printers)
+          else
+            socket.assigns.client_details
+          end
+
+          {:noreply,
+           socket
+           |> assign(:client_details, client_details)
+           |> assign(:fetching_printers, false)
+           |> put_flash(:info, "Refreshed printer list (#{length(printers)} printers)")}
+
+        {:error, :not_connected} ->
           Logger.warning("Client #{client_id} not connected via WebSocket")
-          
+
           {:noreply,
            socket
            |> assign(:fetching_printers, false)
            |> put_flash(:error, "Desktop client is not connected. Please ensure the desktop app is running and connected.")}
+
+        {:error, :timeout} ->
+          Logger.warning("Timeout waiting for printers from client #{client_id}")
+
+          {:noreply,
+           socket
+           |> assign(:fetching_printers, false)
+           |> put_flash(:error, "Timeout waiting for printer list. Client may not be responding.")}
+
+        {:error, reason} ->
+          Logger.error("Failed to get printers for client #{client_id}: #{inspect(reason)}")
+
+          {:noreply,
+           socket
+           |> assign(:fetching_printers, false)
+           |> put_flash(:error, "Failed to get printer list: #{inspect(reason)}")}
       end
     else
       {:noreply, put_flash(socket, :error, "Client status shows as disconnected")}
