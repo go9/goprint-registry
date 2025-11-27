@@ -69,6 +69,13 @@ Notes
 # Install dependencies
 mix deps.get
 
+# Copy environment variables
+cp .env.sample .env
+# Edit .env with your values
+
+# Enable direnv to load .env automatically
+direnv allow
+
 # Start Phoenix server
 mix phx.server
 ```
