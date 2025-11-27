@@ -45,13 +45,22 @@
         <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">macOS</h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">macOS 11 Big Sur or later</p>
         <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Universal (Intel & Apple Silicon)</p>
-        <a 
-          href="https://goprint.t3.storage.dev/releases/GoPrint-1.0.1-universal-mac.zip"
-          download
-          class="mt-4 w-full inline-block bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          Download v1.0.1
-        </a>
+        <%= if mac_asset = @release.assets.mac_dmg || @release.assets.mac_arm64_dmg do %>
+          <a
+            href={mac_asset.url}
+            download
+            class="mt-4 w-full inline-block bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Download <%= @release.version %>
+          </a>
+        <% else %>
+          <button
+            disabled
+            class="mt-4 w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg font-medium cursor-not-allowed"
+          >
+            No Release Available
+          </button>
+        <% end %>
         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Universal (Intel & Apple Silicon)</p>
       </div>
       

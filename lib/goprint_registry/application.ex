@@ -12,6 +12,8 @@ defmodule GoprintRegistry.Application do
       GoprintRegistry.Repo,
       {DNSCluster, query: Application.get_env(:goprint_registry, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GoprintRegistry.PubSub},
+      # Start GitHub releases cache
+      GoprintRegistry.GithubReleases,
       # Start connection manager for desktop clients
       GoprintRegistry.ConnectionManager,
       # Start job queue for print jobs

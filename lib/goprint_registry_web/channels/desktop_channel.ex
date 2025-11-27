@@ -24,7 +24,7 @@ defmodule GoprintRegistryWeb.DesktopChannel do
         nil ->
           Logger.error("DesktopChannel: Client not found in database", client_id: client.id)
           {:error, %{reason: "unknown_client"}}
-        db_client ->
+        _db_client ->
           Logger.info("DesktopChannel: Client found in database", client_id: client.id)
           
           # Register this desktop client

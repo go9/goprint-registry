@@ -10,7 +10,8 @@ defmodule GoprintRegistryWeb.PageController do
   end
 
   def download(conn, _params) do
-    render(conn, :download, layout: {GoprintRegistryWeb.Layouts, :landing})
+    release = GoprintRegistry.GithubReleases.get_latest_release()
+    render(conn, :download, layout: {GoprintRegistryWeb.Layouts, :landing}, release: release)
   end
 
   def docs(conn, _params) do
