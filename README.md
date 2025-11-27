@@ -1,10 +1,10 @@
-# GoPrint Registry
+# GoPrint
 
-A lightweight service discovery registry for GoPrint - the desktop print service that enables silent printing from web applications.
+A lightweight service discovery registry that enables silent printing from web applications.
 
 ## Overview
 
-GoPrint Registry allows GoPrint desktop clients to register themselves and be discovered by web applications without complex network configuration. It provides:
+GoPrint allows desktop clients to register themselves and be discovered by web applications without complex network configuration. It provides:
 
 - 🌐 **Service Discovery** - Web apps can find GoPrint instances using API keys
 - 🔄 **Auto-updating** - GoPrint clients update their IP when it changes  

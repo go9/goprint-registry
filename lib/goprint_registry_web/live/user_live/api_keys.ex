@@ -32,7 +32,7 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                 API Keys
               </h3>
               <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Manage API keys for programmatic access to the GoPrint Registry API
+                Manage API keys for programmatic access to the GoPrint API
               </p>
             </div>
             <div class="mt-4 sm:mt-0 flex gap-2">

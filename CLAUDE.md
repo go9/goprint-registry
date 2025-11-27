@@ -1,8 +1,8 @@
-# GoPrint Registry - Cloud Service Guide for Claude
+# GoPrint - Cloud Service Guide for Claude
 
-## IMPORTANT: Read this before making changes to the GoPrint Registry
+## IMPORTANT: Read this before making changes to GoPrint
 
-This document describes the structure and key components of the GoPrint Registry Phoenix application located at `/Users/giovanniorlando/Sites/goprint_registry`.
+This document describes the structure and key components of the GoPrint Phoenix application located at `/Users/giovanniorlando/Sites/goprint_registry`.
 
 ## Related Repositories
 

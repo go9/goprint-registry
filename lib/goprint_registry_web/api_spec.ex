@@ -6,10 +6,10 @@ defmodule GoprintRegistryWeb.ApiSpec do
     %OpenApiSpex.OpenApi{
       openapi: "3.0.0",
       info: %{
-        title: "GoPrint Registry API",
+        title: "GoPrint API",
         version: "1.0.0",
         description: """
-        The GoPrint Registry API allows developers to integrate cloud printing capabilities into their applications.
+        The GoPrint API allows developers to integrate cloud printing capabilities into their applications.
         
         ## Authentication
         

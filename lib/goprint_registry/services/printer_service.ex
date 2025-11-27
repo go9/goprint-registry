@@ -143,7 +143,7 @@ defmodule GoprintRegistry.Services.PrinterService do
     client_label = if client, do: client.api_name || client_id, else: client_id
     
     """
-    Test Print from GoPrint Registry
+    Test Print from GoPrint
     
     Client: #{client_label}
     Printer: #{printer_id}

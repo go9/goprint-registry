@@ -9,7 +9,7 @@ defmodule GoprintRegistryWeb.DashboardLive do
         <div class="sm:flex-auto">
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
           <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-            Welcome to your GoPrint Registry dashboard
+            Welcome to your GoPrint dashboard
           </p>
         </div>
       </div>

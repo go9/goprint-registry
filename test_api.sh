@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# GoPrint Registry API Test Script
+# GoPrint API Test Script
 
 BASE_URL="http://localhost:4002/api"
 API_KEY="test-developer-key-123"
 CLIENT_ID="desktop_test_123"
 
-echo "Testing GoPrint Registry API..."
+echo "Testing GoPrint API..."
 echo "================================"
 
 # Test status endpoint

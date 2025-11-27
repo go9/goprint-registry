@@ -22,7 +22,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
      |> assign(:test_print_form, to_form(%{
        "printer_id" => "",
        "paper_size" => "A4",
-       "content" => "Test Print from GoPrint Registry\n\nPrinter: [PRINTER_NAME]\nDate: #{DateTime.utc_now() |> DateTime.to_string()}\n\n✓ Connection successful\n✓ Print test successful"
+       "content" => "Test Print from GoPrint\n\nPrinter: [PRINTER_NAME]\nDate: #{DateTime.utc_now() |> DateTime.to_string()}\n\n✓ Connection successful\n✓ Print test successful"
      }))
      |> assign(:filter_status, "all")
      |> assign(:search_query, "")
@@ -223,7 +223,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
     if client && Clients.user_has_access?(socket.assigns.current_scope.user.id, client.id) do
       # Create default test content (plain text) - desktop converts to PDF
       content = """
-      Test Print from GoPrint Registry\n
+      Test Print from GoPrint\n
       Client: #{client.api_name || client_id}\n
       Printer: #{printer_name}\n
       Date: #{DateTime.utc_now() |> DateTime.to_string()}\n

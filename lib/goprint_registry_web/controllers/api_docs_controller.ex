@@ -13,7 +13,7 @@ defmodule GoprintRegistryWeb.ApiDocsController do
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>GoPrint Registry API Documentation</title>
+      <title>GoPrint API Documentation</title>
       <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
       <style>
         html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
