@@ -17,4 +17,12 @@ defmodule GoprintRegistryWeb.PageController do
   def docs(conn, _params) do
     render(conn, :docs, layout: {GoprintRegistryWeb.Layouts, :landing})
   end
+
+  def privacy(conn, _params) do
+    render(conn, :privacy, layout: {GoprintRegistryWeb.Layouts, :landing})
+  end
+
+  def terms(conn, _params) do
+    render(conn, :terms, layout: {GoprintRegistryWeb.Layouts, :landing})
+  end
 end

@@ -101,8 +101,8 @@ defmodule GoprintRegistryWeb.Admin.ClientsLive do
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-          <h1 class="text-3xl font-bold leading-6 text-gray-900">Clients</h1>
-          <p class="mt-2 text-sm text-gray-700">
+          <h1 class="text-3xl font-bold leading-6 text-foreground">Clients</h1>
+          <p class="mt-2 text-sm text-muted-foreground">
             Manage all desktop clients registered in the system.
           </p>
         </div>
@@ -110,36 +110,22 @@ defmodule GoprintRegistryWeb.Admin.ClientsLive do
 
       <!-- Search and Filters -->
       <div class="mt-6">
-        <.form :let={_f} for={%{}} phx-change="update-filter" phx-submit="update-filter">
+        <.form for={%{}} phx-change="update-filter" phx-submit="update-filter">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
-              <div class="mt-1">
-                <input
-                  type="text"
-                  name="q"
-                  id="search"
-                  value={@meta.flop.filters[:q] || ""}
-                  placeholder="Search by name or MAC address..."
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label for="status_filter" class="block text-sm font-medium text-gray-700">Status</label>
-              <div class="mt-1">
-                <select
-                  name="status"
-                  id="status_filter"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                >
-                  <option value="">All Clients</option>
-                  <option value="active" selected={@meta.flop.filters[:status] == "active"}>Active</option>
-                  <option value="inactive" selected={@meta.flop.filters[:status] == "inactive"}>Inactive</option>
-                </select>
-              </div>
-            </div>
+            <.input
+              type="text"
+              name="q"
+              label="Search"
+              value={@meta.flop.filters[:q] || ""}
+              placeholder="Search by name or MAC address..."
+            />
+
+            <.select
+              name="status"
+              label="Status"
+              options={[{"All Clients", ""}, {"Active", "active"}, {"Inactive", "inactive"}]}
+              value={@meta.flop.filters[:status] || ""}
+            />
           </div>
         </.form>
       </div>
@@ -148,26 +134,26 @@ defmodule GoprintRegistryWeb.Admin.ClientsLive do
       <div class="mt-8 flow-root">
         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table class="min-w-full divide-y divide-gray-300">
-                <thead class="bg-gray-50">
+            <div class="overflow-hidden shadow ring-1 ring-black/5 dark:ring-white/10 sm:rounded-lg">
+              <table class="min-w-full divide-y divide-base">
+                <thead class="bg-muted/50">
                   <tr>
-                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6">
                       Name
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                       MAC Address
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                       Status
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                       OS
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                       Last Connected
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                       Registered
                     </th>
                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -175,55 +161,48 @@ defmodule GoprintRegistryWeb.Admin.ClientsLive do
                     </th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
+                <tbody class="divide-y divide-base bg-card">
                   <tr :for={{id, client} <- @streams.clients} id={id}>
-                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
                       <%= client.api_name || "Unknown" %>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
+                      <code class="text-xs bg-muted px-1 py-0.5 rounded">
                         <%= client.mac_address || "-" %>
                       </code>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                       <%= if is_client_active?(client) do %>
-                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                          <svg class="mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
-                            <circle cx="4" cy="4" r="3" />
-                          </svg>
-                          Active
-                        </span>
+                        <.badge color="success">Active</.badge>
                       <% else %>
-                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                          <svg class="mr-1.5 h-2 w-2 text-gray-400" fill="currentColor" viewBox="0 0 8 8">
-                            <circle cx="4" cy="4" r="3" />
-                          </svg>
-                          Inactive
-                        </span>
+                        <.badge color="info">Inactive</.badge>
                       <% end %>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                       <%= client.operating_system || "-" %>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                       <%= if client.last_connected_at do %>
                         <%= format_relative_time(client.last_connected_at) %>
                       <% else %>
                         Never
                       <% end %>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                       <%= Calendar.strftime(client.inserted_at, "%b %d, %Y") %>
                     </td>
                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                      <button
+                      <.button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        color="danger"
                         phx-click="delete-client"
                         phx-value-id={client.id}
                         data-confirm="Are you sure you want to delete this client?"
-                        class="text-red-600 hover:text-red-900"
                       >
                         Delete
-                      </button>
+                      </.button>
                     </td>
                   </tr>
                 </tbody>

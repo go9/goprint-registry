@@ -7,8 +7,8 @@ defmodule GoprintRegistryWeb.DashboardLive do
     <div class="px-4 sm:px-6 lg:px-8 py-8">
       <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
-          <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
+          <p class="mt-2 text-sm text-muted-foreground">
             Welcome to your GoPrint dashboard
           </p>
         </div>
@@ -16,36 +16,36 @@ defmodule GoprintRegistryWeb.DashboardLive do
 
       <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Connected Printers -->
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="bg-card overflow-hidden shadow rounded-lg border border-base">
           <div class="px-4 py-5 sm:p-6">
-            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+            <dt class="text-sm font-medium text-muted-foreground truncate">
               Connected Printers
             </dt>
-            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
+            <dd class="mt-1 text-3xl font-semibold text-foreground">
               0
             </dd>
           </div>
         </div>
 
         <!-- Print Jobs Today -->
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="bg-card overflow-hidden shadow rounded-lg border border-base">
           <div class="px-4 py-5 sm:p-6">
-            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+            <dt class="text-sm font-medium text-muted-foreground truncate">
               Print Jobs Today
             </dt>
-            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
+            <dd class="mt-1 text-3xl font-semibold text-foreground">
               0
             </dd>
           </div>
         </div>
 
         <!-- Active Sessions -->
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="bg-card overflow-hidden shadow rounded-lg border border-base">
           <div class="px-4 py-5 sm:p-6">
-            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+            <dt class="text-sm font-medium text-muted-foreground truncate">
               Active Sessions
             </dt>
-            <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
+            <dd class="mt-1 text-3xl font-semibold text-foreground">
               0
             </dd>
           </div>
@@ -54,10 +54,10 @@ defmodule GoprintRegistryWeb.DashboardLive do
 
       <!-- Recent Activity -->
       <div class="mt-8">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Recent Activity</h2>
-        <div class="mt-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+        <h2 class="text-lg font-medium text-foreground">Recent Activity</h2>
+        <div class="mt-4 bg-card shadow overflow-hidden sm:rounded-md border border-base">
           <div class="px-4 py-5 sm:p-6">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="text-sm text-muted-foreground">
               No recent activity to display
             </p>
           </div>

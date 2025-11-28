@@ -37,7 +37,11 @@ ENV MIX_ENV="prod"
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
+RUN --mount=type=secret,id=FLUXON_LICENSE_KEY \
+    mix hex.repo add fluxon https://repo.fluxonui.com \
+    --fetch-public-key "SHA256:zF8zWamOWgokeJdiIYgRl91ZBmQYnyXlxIOp3ralbos" \
+    --auth-key "$(cat /run/secrets/FLUXON_LICENSE_KEY)" && \
+    mix deps.get --only $MIX_ENV
 RUN mkdir config
 
 # copy compile-time config files before we compile dependencies

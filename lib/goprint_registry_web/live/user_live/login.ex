@@ -6,15 +6,14 @@ defmodule GoprintRegistryWeb.UserLive.Login do
     ~H"""
     <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
+        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-foreground">
           Sign in to your account
         </h2>
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-        <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
+        <div class="bg-card px-6 py-12 shadow sm:rounded-lg sm:px-12 border border-base">
           <.form
-            :let={f}
             for={@form}
             id="login_form"
             action={~p"/users/log-in"}
@@ -22,90 +21,28 @@ defmodule GoprintRegistryWeb.UserLive.Login do
             phx-trigger-action={@trigger_submit}
             class="space-y-6"
           >
-            <div>
-              <label for="email" class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Email address
-              </label>
-              <div class="mt-2">
-                <input
-                  id="email"
-                  type="email"
-                  name={f[:email].name}
-                  value={f[:email].value}
-                  required
-                  autocomplete="email"
-                  phx-mounted={JS.focus()}
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
-                />
-              </div>
-            </div>
+            <.input
+              field={@form[:email]}
+              type="email"
+              label="Email address"
+              required
+              autocomplete="email"
+              phx-mounted={JS.focus()}
+            />
 
-            <div>
-              <label for="password" class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Password
-              </label>
-              <div class="mt-2">
-                <input
-                  id="password"
-                  type="password"
-                  name={f[:password].name}
-                  value={f[:password].value}
-                  required
-                  autocomplete="current-password"
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
-                />
-              </div>
-            </div>
+            <.input
+              field={@form[:password]}
+              type="password"
+              label="Password"
+              required
+              autocomplete="current-password"
+            />
 
-            <div class="flex items-center justify-between">
-              <div class="flex gap-3">
-                <div class="flex h-6 shrink-0 items-center">
-                  <div class="group grid size-4 grid-cols-1">
-                    <input
-                      id="remember-me"
-                      type="checkbox"
-                      name={f[:remember_me].name}
-                      value="true"
-                      class="col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:indeterminate:border-indigo-500 dark:indeterminate:bg-indigo-500 dark:focus-visible:outline-indigo-500 forced-colors:appearance-auto"
-                    />
-                    <svg
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25 dark:group-has-[:disabled]:stroke-white/25"
-                    >
-                      <path
-                        d="M3 8L6 11L11 3.5"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="opacity-0 group-has-[:checked]:opacity-100"
-                      />
-                      <path
-                        d="M3 7H11"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="opacity-0 group-has-[:indeterminate]:opacity-100"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <label for="remember-me" class="block text-sm/6 text-gray-900 dark:text-white">
-                  Remember me
-                </label>
-              </div>
+            <.checkbox field={@form[:remember_me]} label="Remember me" />
 
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                phx-disable-with="Signing in..."
-                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
-              >
-                Sign in
-              </button>
-            </div>
+            <.button type="submit" variant="solid" color="primary" class="w-full" phx-disable-with="Signing in...">
+              Sign in
+            </.button>
           </.form>
 
           <div :if={false}>
@@ -182,11 +119,11 @@ defmodule GoprintRegistryWeb.UserLive.Login do
           </div>
         </div>
 
-        <p class="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
+        <p class="mt-10 text-center text-sm/6 text-muted-foreground">
           Not a member?
           <.link
             navigate={~p"/users/register"}
-            class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            class="font-semibold text-primary hover:text-primary/80"
           >
             Create an account
           </.link>

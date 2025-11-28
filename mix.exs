@@ -44,6 +44,7 @@ defmodule GoprintRegistry.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
+      {:fluxon, "~> 2.0.0", repo: :fluxon},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_ecto, "~> 4.6"},
@@ -52,7 +53,7 @@ defmodule GoprintRegistry.MixProject do
       {:flop, "~> 0.26.0"},
       {:flop_phoenix, "~> 0.25.0"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      # Tailwind v4 is now managed via PostCSS (see assets/postcss.config.js)
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",

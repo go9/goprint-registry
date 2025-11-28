@@ -82,10 +82,19 @@ defmodule GoprintRegistryWeb do
       # Translation
       use Gettext, backend: GoprintRegistryWeb.Gettext
 
+      # Fluxon UI components
+      use Fluxon
+      # Fluxon Form components (label, error)
+      import Fluxon.Components.Form, only: [label: 1, error: 1]
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      import GoprintRegistryWeb.Components.Core.CoreComponents
+      # Core UI components (exclude those provided by Fluxon)
+      import GoprintRegistryWeb.Components.Core.CoreComponents, except: [
+        table: 1,
+        button: 1,
+        input: 1
+      ]
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

@@ -9,13 +9,13 @@ defmodule GoprintRegistryWeb.UserLive.Registration do
     ~H"""
     <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
+        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-foreground">
           Create your account
         </h2>
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-        <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
+        <div class="bg-card px-6 py-12 shadow sm:rounded-lg sm:px-12 border border-base">
           <.form
             for={@form}
             id="registration_form"
@@ -23,78 +23,36 @@ defmodule GoprintRegistryWeb.UserLive.Registration do
             phx-change="validate"
             class="space-y-6"
           >
-            <div>
-              <label for="email" class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Email address
-              </label>
-              <div class="mt-2">
-                <input
-                  id="email"
-                  type="email"
-                  name={@form[:email].name}
-                  value={@form[:email].value}
-                  required
-                  autocomplete="email"
-                  phx-mounted={JS.focus()}
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
-                />
-                <.error :for={msg <- Enum.map(@form[:email].errors || [], &elem(&1, 0))}>
-                  {msg}
-                </.error>
-              </div>
-            </div>
+            <.input
+              field={@form[:email]}
+              type="email"
+              label="Email address"
+              required
+              autocomplete="email"
+              phx-mounted={JS.focus()}
+            />
 
-            <div>
-              <label for="password" class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Password
-              </label>
-              <div class="mt-2">
-                <input
-                  id="password"
-                  type="password"
-                  name={@form[:password].name}
-                  value={@form[:password].value}
-                  required
-                  autocomplete="new-password"
-                  placeholder="At least 10 characters"
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
-                />
-                <.error :for={msg <- Enum.map(@form[:password].errors || [], &elem(&1, 0))}>
-                  {msg}
-                </.error>
-              </div>
-            </div>
+            <.input
+              field={@form[:password]}
+              type="password"
+              label="Password"
+              required
+              autocomplete="new-password"
+              placeholder="At least 10 characters"
+            />
 
-            <div>
-              <label for="password_confirmation" class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Confirm Password
-              </label>
-              <div class="mt-2">
-                <input
-                  id="password_confirmation"
-                  type="password"
-                  name={@form[:password_confirmation].name}
-                  value={@form[:password_confirmation].value}
-                  required
-                  autocomplete="new-password"
-                  placeholder="Confirm your password"
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
-                />
-                <.error :for={msg <- Enum.map(@form[:password_confirmation].errors || [], &elem(&1, 0))}>
-                  {msg}
-                </.error>
-              </div>
-            </div>
+            <.input
+              field={@form[:password_confirmation]}
+              type="password"
+              label="Confirm Password"
+              required
+              autocomplete="new-password"
+              placeholder="Confirm your password"
+            />
 
-            <div>
-              <button
-                type="submit"
-                phx-disable-with="Creating account..."
-                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
-              >
-                Create account
-              </button>
-            </div>
+            <.button type="submit" variant="solid" color="primary" class="w-full" phx-disable-with="Creating account...">
+              Create account
+            </.button>
           </.form>
 
           <div :if={false}>
@@ -154,11 +112,11 @@ defmodule GoprintRegistryWeb.UserLive.Registration do
           </div>
         </div>
 
-        <p class="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
+        <p class="mt-10 text-center text-sm/6 text-muted-foreground">
           Already have an account?
           <.link
             navigate={~p"/users/log-in"}
-            class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            class="font-semibold text-primary hover:text-primary/80"
           >
             Sign in
           </.link>

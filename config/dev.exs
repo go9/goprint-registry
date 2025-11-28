@@ -16,7 +16,7 @@ config :goprint_registry, GoprintRegistryWeb.Endpoint,
   secret_key_base: "ESB97gLO/p6KmFWPeeBoQ0sb4NadhLvjvgfnE7yYXw0dcQVY3Uh04JBs3jhgdZaG",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:goprint_registry, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:goprint_registry, ~w(--watch)]}
+    npm: ["run", "watch", cd: Path.expand("../assets", __DIR__)]
   ]
 
 # ## SSL Support

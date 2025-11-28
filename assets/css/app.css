@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../css";
+@source "../js";
+@source "../../lib/goprint_registry_web";
+@source "../../deps/fluxon/**/*.*ex";
+@import "../../deps/fluxon/priv/static/theme";
+
+/* Tailwind v4 Theme Configuration */
+@theme {
+  /* Font families */
+  --font-sans: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-heading: 'Raleway', system-ui, -apple-system, sans-serif;
+
+  /* Match bg-card to bg-base for consistent backgrounds */
+  --background-color-card: var(--background-base);
+
+  /* Brand colors */
+  --color-brand: #FD4F00;
+}
 
 /* This file is for your main application CSS */
 
@@ -17,12 +33,12 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* Alpine.js x-cloak - hide elements until Alpine initializes */
-[x-cloak] { 
-  display: none !important; 
+[x-cloak] {
+  display: none !important;
 }
 
 /* Make LiveView wrapper divs transparent for layout */
-[data-phx-session], [data-phx-teleported-src] { 
+[data-phx-session], [data-phx-teleported-src] {
   display: contents;
 }
 

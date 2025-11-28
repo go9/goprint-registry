@@ -27,7 +27,9 @@ defmodule GoprintRegistryWeb.Router do
     get "/pricing", PageController, :pricing
     get "/download", PageController, :download
     get "/docs", PageController, :docs
-    
+    get "/privacy", PageController, :privacy
+    get "/terms", PageController, :terms
+
     # API Documentation
     get "/api/docs", ApiDocsController, :swagger_ui
   end
@@ -95,6 +97,7 @@ defmodule GoprintRegistryWeb.Router do
       live "/", DashboardLive
       live "/users", UsersLive
       live "/clients", ClientsLive
+      live "/connections", ConnectionsLive
     end
   end
 

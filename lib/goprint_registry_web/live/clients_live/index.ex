@@ -1,8 +1,9 @@
 defmodule GoprintRegistryWeb.ClientsLive.Index do
   use GoprintRegistryWeb, :live_view
-  
+
   alias GoprintRegistry.{Clients, PrintJobs, ConnectionManager}
-  
+  alias GoprintRegistry.Clients.Client
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -10,12 +11,10 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       # Refresh connection status every 2 seconds
       :timer.send_interval(2000, self(), :refresh_connections)
     end
-    
-    clients = load_clients_with_connection_status(socket.assigns.current_scope.user.id)
-    
+
     {:ok,
      socket
-     |> assign(:clients, clients)
+     |> stream(:clients, [])
      |> assign(:page_title, "Clients")
      |> assign(:show_test_print_modal, false)
      |> assign(:selected_client, nil)
@@ -24,121 +23,128 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
        "paper_size" => "A4",
        "content" => "Test Print from GoPrint\n\nPrinter: [PRINTER_NAME]\nDate: #{DateTime.utc_now() |> DateTime.to_string()}\n\n✓ Connection successful\n✓ Print test successful"
      }))
-     |> assign(:filter_status, "all")
-     |> assign(:search_query, "")
      |> assign(:add_client_form, to_form(%{"client_id" => ""}))
      |> assign(:show_ip_modal, false)
      |> assign(:show_client_modal, false)
      |> assign(:client_details, nil)
      |> assign(:print_job_status, nil)
-     |> assign(:fetching_printers, false), 
+     |> assign(:fetching_printers, false),
      layout: {GoprintRegistryWeb.Layouts, :app}}
   end
-  
+
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_filters(socket, params)}
+    case Flop.validate(params, for: Client) do
+      {:ok, flop} ->
+        {clients, meta} = Clients.list_clients_for_user_with_flop(socket.assigns.current_scope.user.id, flop)
+
+        # Get active WebSocket connections
+        ws_connections = ConnectionManager.list_connections()
+        ws_client_ids = Enum.map(ws_connections, fn {client_id, _} -> client_id end)
+
+        # Update status based on actual WebSocket connections
+        clients_with_ws = Enum.map(clients, fn client ->
+          Map.from_struct(client)
+          |> Map.put(:status, if(client.id in ws_client_ids, do: "connected", else: "disconnected"))
+          |> Map.put(:ws_connected, client.id in ws_client_ids)
+        end)
+
+        {:noreply,
+         socket
+         |> stream(:clients, clients_with_ws, reset: true)
+         |> assign(:meta, meta)}
+
+      {:error, _meta} ->
+        {:noreply, push_navigate(socket, to: ~p"/clients")}
+    end
   end
-  
-  defp apply_filters(socket, params) do
-    status = params["status"] || "all"
-    query = params["q"] || ""
-    
-    clients = load_clients_with_connection_status(socket.assigns.current_scope.user.id)
-    
-    filtered_clients = clients
-    |> filter_by_status(status)
-    |> filter_by_search(query)
-    
-    socket
-    |> assign(:clients, filtered_clients)
-    |> assign(:filter_status, status)
-    |> assign(:search_query, query)
+
+  @impl true
+  def handle_event("update-filter", params, socket) do
+    params = Map.delete(params, "_target")
+    {:noreply, push_patch(socket, to: ~p"/clients?#{params}")}
   end
-  
-  defp filter_by_status(clients, "all"), do: clients
-  defp filter_by_status(clients, status) do
-    Enum.filter(clients, &(&1.status == status))
+
+  @impl true
+  def handle_event("clear-filters", _params, socket) do
+    {:noreply, push_patch(socket, to: ~p"/clients")}
   end
-  
-  defp filter_by_search(clients, ""), do: clients
-  defp filter_by_search(clients, query) do
-    query = String.downcase(query)
-    Enum.filter(clients, fn client ->
-      String.contains?(String.downcase(client.id || ""), query) ||
-      String.contains?(String.downcase(client.api_name || ""), query) ||
-      String.contains?(String.downcase(client.mac_address || ""), query)
-    end)
+
+  defp sort_link_params(meta, field) do
+    current_order = meta.flop.order_by
+    current_direction = case meta.flop.order_directions do
+      [dir | _] -> dir
+      _ -> :desc
+    end
+
+    # Toggle direction if clicking the same field, otherwise default to desc
+    new_direction = if current_order == field do
+      if current_direction == :asc, do: :desc, else: :asc
+    else
+      :desc
+    end
+
+    # Build params preserving filters - use existing params and add sort
+    meta.params
+    |> Map.put("order_by", to_string(field))
+    |> Map.put("order_directions[]", to_string(new_direction))
   end
-  
+
   @impl true
   def handle_event("add_client", %{"add_client" => %{"client_id" => client_id}}, socket) do
     client_id = String.trim(client_id)
-    
+
     if client_id == "" do
       {:noreply, put_flash(socket, :error, "Client ID cannot be empty")}
     else
       case Clients.associate_user_with_client(socket.assigns.current_scope.user.id, client_id) do
         {:ok, _client_user} ->
-          clients = load_clients_with_connection_status(socket.assigns.current_scope.user.id)
           {:noreply,
            socket
            |> put_flash(:info, "Client added successfully!")
-           |> assign(:clients, clients)
+           |> push_patch(to: ~p"/clients")
            |> assign(:add_client_form, to_form(%{"client_id" => ""}))}
-        
+
         {:error, :invalid_client_id} ->
           {:noreply, put_flash(socket, :error, "Invalid Client ID. Please check the ID from your desktop client and try again.")}
-        
+
         {:error, :already_associated} ->
           {:noreply, put_flash(socket, :error, "This client is already associated with your account.")}
-        
+
         {:error, _} ->
           {:noreply, put_flash(socket, :error, "Failed to add client")}
       end
     end
   end
-  
-  @impl true
-  def handle_event("search", %{"search" => %{"query" => query}}, socket) do
-    params = %{"q" => query, "status" => socket.assigns.filter_status}
-    {:noreply, push_patch(socket, to: ~p"/clients?#{params}")}
-  end
-  
+
   @impl true
   def handle_event("delete_client", %{"id" => client_id}, socket) do
     # Disassociate user from client (soft delete)
     case Clients.disassociate_user_from_client(socket.assigns.current_scope.user.id, client_id) do
         {:ok, _} ->
-          clients = load_clients_with_connection_status(socket.assigns.current_scope.user.id)
           {:noreply,
            socket
            |> put_flash(:info, "Client removed successfully")
-           |> assign(:clients, clients)}
-        
+           |> push_patch(to: ~p"/clients")}
+
         {:error, _} ->
           {:noreply, put_flash(socket, :error, "Failed to remove client")}
     end
   end
-  
-  @impl true
-  def handle_event("filter_status", %{"status" => status}, socket) do
-    params = %{"status" => status, "q" => socket.assigns.search_query}
-    {:noreply, push_patch(socket, to: ~p"/clients?#{params}")}
-  end
-  
+
   @impl true
   def handle_event("show_client", %{"id" => client_id}, socket) do
-    client = Enum.find(socket.assigns.clients, &(&1.id == client_id))
-    
+    # Find client in stream
+    client = get_client_from_stream(socket, client_id)
+
     if client do
       # Load additional client details
       client_with_details = %{
-        client | 
+        client |
         ip_addresses: Clients.get_client_ip_addresses(client_id),
         users: Clients.get_client_users(client_id)
       }
-      
+
       # Don't auto-fetch, just show existing printers
       {:noreply,
        socket
@@ -149,7 +155,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, socket}
     end
   end
-  
+
   @impl true
   def handle_event("close_client_modal", _, socket) do
     {:noreply,
@@ -158,7 +164,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
      |> assign(:client_details, nil)
      |> assign(:fetching_printers, false)}
   end
-  
+
   @impl true
   def handle_event("refresh_printers", %{"id" => client_id}, socket) do
     if socket.assigns.client_details && socket.assigns.client_details.status == "connected" do
@@ -212,14 +218,14 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, put_flash(socket, :error, "Client status shows as disconnected")}
     end
   end
-  
+
   @impl true
   def handle_event("test_print_with_printer", %{"client-id" => client_id, "printer-id" => printer_id, "printer-name" => printer_name}, socket) do
     require Logger
     Logger.info("Quick test print requested for client #{client_id}, printer #{printer_id}")
-    
-    client = Enum.find(socket.assigns.clients, &(&1.id == client_id))
-    
+
+    client = get_client_from_stream(socket, client_id)
+
     if client && Clients.user_has_access?(socket.assigns.current_scope.user.id, client.id) do
       # Create default test content (plain text) - desktop converts to PDF
       content = """
@@ -233,7 +239,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       \n
       This is a test page to verify printer connectivity.
       """
-      
+
       case PrintJobs.create_print_job(%{
         client_id: client.id,
         user_id: socket.assigns.current_scope.user.id,
@@ -244,7 +250,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       }) do
         {:ok, print_job} ->
           Logger.info("Quick print job created: #{print_job.job_id} for printer #{printer_id}")
-          
+
           # Send print job to client via WebSocket
           # Format job for desktop client (exclude associations)
           # Desktop app expects: content (base64) and options.mime
@@ -254,19 +260,19 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
             content: Base.encode64(print_job.content || ""),
             options: print_job.options
           }
-          
+
           Phoenix.PubSub.broadcast(
             GoprintRegistry.PubSub,
             "desktop:#{client.id}",
             {:print_job, job_for_desktop}
           )
-          
+
           Logger.info("Print job #{print_job.job_id} broadcast to desktop:#{client.id}")
-          
+
           {:noreply,
            socket
            |> put_flash(:info, "Test print sent to #{printer_name}! Job ID: #{print_job.job_id}")}
-      
+
         {:error, changeset} ->
           Logger.error("Failed to create quick print job: #{inspect(changeset.errors)}")
           {:noreply, put_flash(socket, :error, "Failed to send test print")}
@@ -275,17 +281,17 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, put_flash(socket, :error, "Client not found or access denied")}
     end
   end
-  
+
   @impl true
   def handle_event("open_test_print", %{"id" => client_id}, socket) do
-    client = Enum.find(socket.assigns.clients, &(&1.id == client_id))
-    
+    client = get_client_from_stream(socket, client_id)
+
     {:noreply,
      socket
      |> assign(:show_test_print_modal, true)
      |> assign(:selected_client, client)}
   end
-  
+
   @impl true
   def handle_event("close_test_print", _, socket) do
     {:noreply,
@@ -294,23 +300,23 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
      |> assign(:selected_client, nil)
      |> assign(:print_job_status, nil)}
   end
-  
+
   @impl true
   def handle_event("toggle_ip_details", %{"id" => client_id}, socket) do
-    client = Enum.find(socket.assigns.clients, &(&1.id == client_id))
+    client = get_client_from_stream(socket, client_id)
     # Load IP addresses for the client
     client_with_ips = if client do
       %{client | ip_addresses: Clients.get_client_ip_addresses(client_id)}
     else
       nil
     end
-    
+
     {:noreply,
      socket
      |> assign(:show_ip_modal, true)
      |> assign(:selected_client, client_with_ips)}
   end
-  
+
   @impl true
   def handle_event("close_ip_modal", _, socket) do
     {:noreply,
@@ -318,19 +324,19 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
      |> assign(:show_ip_modal, false)
      |> assign(:selected_client, nil)}
   end
-  
+
   @impl true
   def handle_event("validate_test_print", %{"test_print" => params}, socket) do
     {:noreply, assign(socket, :test_print_form, to_form(params))}
   end
-  
+
   @impl true
   def handle_event("submit_test_print", %{"test_print" => params}, socket) do
     client = socket.assigns.selected_client
-    
+
     require Logger
     Logger.info("Test print requested for client #{client.id}, printer: #{params["printer_id"]}")
-    
+
     # Check if user has access to this client
     if Clients.user_has_access?(socket.assigns.current_scope.user.id, client.id) do
       case PrintJobs.create_print_job(%{
@@ -343,7 +349,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       }) do
         {:ok, print_job} ->
           Logger.info("Print job created: #{print_job.job_id} for client #{client.id}")
-          
+
           # Send print job to client via WebSocket
           # Format job for desktop client (exclude associations)
           # Desktop app expects: content (base64) and options.mime
@@ -353,21 +359,21 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
             content: Base.encode64(print_job.content || ""),
             options: print_job.options
           }
-          
+
           Phoenix.PubSub.broadcast(
             GoprintRegistry.PubSub,
             "desktop:#{client.id}",
             {:print_job, job_for_desktop}
           )
-          
+
           Logger.info("Print job #{print_job.job_id} broadcast to desktop:#{client.id}")
-        
+
           {:noreply,
            socket
            |> put_flash(:info, "Test print sent successfully! Job ID: #{print_job.job_id}")
            |> assign(:print_job_status, print_job)
            |> assign(:show_test_print_modal, false)}
-      
+
         {:error, changeset} ->
           Logger.error("Failed to create print job: #{inspect(changeset.errors)}")
           {:noreply, put_flash(socket, :error, "Failed to send test print")}
@@ -377,41 +383,34 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, put_flash(socket, :error, "You don't have access to this client")}
     end
   end
-  
+
   @impl true
   def handle_info({:client_connected, client}, socket) do
-    clients = update_client_in_list(socket.assigns.clients, client)
-    {:noreply, assign(socket, :clients, clients)}
+    # Refresh the list instead of updating individual client
+    {:noreply, push_patch(socket, to: current_path_with_params(socket))}
   end
-  
+
   @impl true
-  def handle_info({:client_disconnected, client_id}, socket) do
-    clients = Enum.map(socket.assigns.clients, fn c ->
-      if c.id == client_id, do: %{c | status: "disconnected"}, else: c
-    end)
-    {:noreply, assign(socket, :clients, clients)}
+  def handle_info({:client_disconnected, _client_id}, socket) do
+    # Refresh the list instead of updating individual client
+    {:noreply, push_patch(socket, to: current_path_with_params(socket))}
   end
-  
+
   @impl true
   def handle_info({:printers_updated, client_id, printers}, socket) do
-    clients = Enum.map(socket.assigns.clients, fn c ->
-      if c.id == client_id, do: %{c | printers: printers}, else: c
-    end)
-    
     # Update client details if modal is open
     client_details = if socket.assigns.client_details && socket.assigns.client_details.id == client_id do
       %{socket.assigns.client_details | printers: printers}
     else
       socket.assigns.client_details
     end
-    
+
     {:noreply,
      socket
-     |> assign(:clients, clients)
      |> assign(:client_details, client_details)
      |> assign(:fetching_printers, false)}
   end
-  
+
   @impl true
   def handle_info({:print_job_status, job_id, status, details}, socket) do
     if socket.assigns.print_job_status && socket.assigns.print_job_status.job_id == job_id do
@@ -421,7 +420,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, socket}
     end
   end
-  
+
   @impl true
   def handle_info({:printer_fetch_timeout, client_id}, socket) do
     if socket.assigns.fetching_printers do
@@ -434,39 +433,53 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
       {:noreply, socket}
     end
   end
-  
+
   @impl true
   def handle_info(:refresh_connections, socket) do
-    # Refresh connection status from ConnectionManager
-    clients = load_clients_with_connection_status(socket.assigns.current_scope.user.id)
-    
-    # Only update if there are changes to avoid unnecessary re-renders
-    if clients != socket.assigns.clients do
-      {:noreply, assign(socket, :clients, clients)}
+    # Refresh connection status by re-fetching with current flop
+    if Map.has_key?(socket.assigns, :meta) && socket.assigns.meta do
+      {clients, meta} = Clients.list_clients_for_user_with_flop(socket.assigns.current_scope.user.id, socket.assigns.meta.flop)
+
+      # Get active WebSocket connections
+      ws_connections = ConnectionManager.list_connections()
+      ws_client_ids = Enum.map(ws_connections, fn {client_id, _} -> client_id end)
+
+      # Update status based on actual WebSocket connections
+      clients_with_ws = Enum.map(clients, fn client ->
+        Map.from_struct(client)
+        |> Map.put(:status, if(client.id in ws_client_ids, do: "connected", else: "disconnected"))
+        |> Map.put(:ws_connected, client.id in ws_client_ids)
+      end)
+
+      {:noreply,
+       socket
+       |> stream(:clients, clients_with_ws, reset: true)
+       |> assign(:meta, meta)}
     else
       {:noreply, socket}
     end
   end
-  
-  defp update_client_in_list(clients, updated_client) do
-    Enum.map(clients, fn client ->
-      if client.id == updated_client.id, do: updated_client, else: client
-    end)
+
+  defp get_client_from_stream(socket, client_id) do
+    # Since we're using streams, we need to look up from DB or meta
+    # For now, we'll fetch from DB directly
+    case Clients.get_client(client_id) do
+      nil -> nil
+      client ->
+        ws_connections = ConnectionManager.list_connections()
+        ws_client_ids = Enum.map(ws_connections, fn {cid, _} -> cid end)
+
+        Map.from_struct(client)
+        |> Map.put(:status, if(client.id in ws_client_ids, do: "connected", else: "disconnected"))
+        |> Map.put(:ws_connected, client.id in ws_client_ids)
+    end
   end
-  
-  defp load_clients_with_connection_status(user_id) do
-    # Get clients from database
-    db_clients = Clients.list_clients_for_user(user_id)
-    
-    # Get active WebSocket connections
-    ws_connections = ConnectionManager.list_connections()
-    ws_client_ids = Enum.map(ws_connections, fn {client_id, _} -> client_id end)
-    
-    # Update status based on actual WebSocket connections
-    Enum.map(db_clients, fn client ->
-      Map.from_struct(client)
-      |> Map.put(:status, if(client.id in ws_client_ids, do: "connected", else: "disconnected"))
-      |> Map.put(:ws_connected, client.id in ws_client_ids)
-    end)
+
+  defp current_path_with_params(socket) do
+    if socket.assigns[:meta] do
+      ~p"/clients?#{Flop.to_query(socket.assigns.meta.flop)}"
+    else
+      ~p"/clients"
+    end
   end
 end

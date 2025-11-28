@@ -45,17 +45,8 @@ config :esbuild,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
-# Configure tailwind (the version is required)
-config :tailwind,
-  version: "3.4.14",
-  goprint_registry: [
-    args: ~w(
-      --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ]
+# Tailwind v4 is now managed via PostCSS (see assets/postcss.config.js)
+# Use `npm run watch` in development and `npm run deploy` for production
 
 # Configures Elixir's Logger
 config :logger, :default_formatter,

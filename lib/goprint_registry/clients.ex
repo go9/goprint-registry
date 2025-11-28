@@ -57,6 +57,19 @@ defmodule GoprintRegistry.Clients do
   end
 
   @doc """
+  Lists clients for a user with Flop pagination and filtering.
+  """
+  def list_clients_for_user_with_flop(user_id, flop \\ %Flop{}) do
+    query = from(c in Client,
+      join: cu in ClientUser, on: cu.client_id == c.id,
+      where: cu.user_id == ^user_id and cu.is_active == true,
+      order_by: [desc: c.last_connected_at],
+      preload: [:client_users, :ip_addresses]
+    )
+    Flop.run(query, flop, for: Client)
+  end
+
+  @doc """
   Gets a single client.
   """
   def get_client!(id), do: Repo.get!(Client, id)

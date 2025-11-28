@@ -1,7 +1,19 @@
 {
   "name": "goprint_registry_assets",
   "version": "1.0.0",
+  "scripts": {
+    "build": "node css/generate-heroicons.js && cp css/heroicons.css ../priv/static/assets/heroicons.css && NODE_ENV=development postcss css/app.css -o ../priv/static/assets/app.css",
+    "deploy": "node css/generate-heroicons.js && cp css/heroicons.css ../priv/static/assets/heroicons.css && NODE_ENV=production postcss css/app.css -o ../priv/static/assets/app.css --minify",
+    "watch": "node css/generate-heroicons.js && cp css/heroicons.css ../priv/static/assets/heroicons.css && postcss css/app.css -o ../priv/static/assets/app.css --watch"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.9"
+  },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.7"
+    "@tailwindcss/postcss": "^4.1.17",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.0.0"
   }
 }

@@ -1,57 +1,54 @@
-<header class="px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+<header class="px-4 sm:px-6 lg:px-8 bg-card border-b border-base">
   <div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between py-4">
       <div class="flex items-center">
         <.link href="/" class="flex items-center gap-3">
           <img src={~p"/images/go-logo.png"} alt="GoPrint" class="h-8 w-auto" />
-          <span class="text-xl font-bold text-gray-900 dark:text-white">GoPrint</span>
+          <span class="text-xl font-bold text-foreground">GoPrint</span>
         </.link>
       </div>
-      
+
       <nav class="hidden md:flex items-center gap-6">
-        <.link href="/" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+        <.link href="/" class="text-muted-foreground hover:text-foreground font-medium">
           Home
         </.link>
-        <.link href="/pricing" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+        <.link href="/pricing" class="text-muted-foreground hover:text-foreground font-medium">
           Pricing
         </.link>
-        <.link href="/download" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+        <.link href="/download" class="text-muted-foreground hover:text-foreground font-medium">
           Download
         </.link>
-        <.link href="/docs" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+        <.link href="/docs" class="text-muted-foreground hover:text-foreground font-medium">
           Docs
         </.link>
       </nav>
-      
+
       <div class="flex items-center gap-4">
         <GoprintRegistryWeb.Components.DarkModeToggle.dark_mode_toggle />
         <%= if assigns[:current_scope] && @current_scope.user do %>
-          <.link href="/dashboard" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+          <.link href="/dashboard" class="text-muted-foreground hover:text-foreground font-medium">
             Dashboard
           </.link>
-          <.link href="/users/settings" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+          <.link href="/users/settings" class="text-muted-foreground hover:text-foreground font-medium">
             Settings
           </.link>
-          <.link href="/users/log-out" method="delete" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+          <.link href="/users/log-out" method="delete" class="text-muted-foreground hover:text-foreground font-medium">
             Log out
           </.link>
         <% else %>
-          <.link href="/users/log-in" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
+          <.link href="/users/log-in" class="text-muted-foreground hover:text-foreground font-medium">
             Sign in
           </.link>
-          <.link 
-            href="/users/register" 
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
-          >
+          <.button variant="solid" color="primary" navigate="/users/register">
             Get Started
-          </.link>
+          </.button>
         <% end %>
       </div>
     </div>
   </div>
 </header>
 
-<main class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<main class="min-h-screen bg-muted/30">
   <.flash_group flash={@flash} />
   <%= if assigns[:inner_block] do %>
     <%= render_slot(@inner_block) %>
@@ -60,45 +57,44 @@
   <% end %>
 </main>
 
-<footer class="bg-gray-900 text-gray-300">
+<footer class="bg-foreground/95 text-muted">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <div>
         <h3 class="text-white font-bold mb-4">GoPrint</h3>
-        <p class="text-sm">
+        <p class="text-sm text-muted">
           Connect your printers to the cloud. Monitor, manage, and control from anywhere.
         </p>
       </div>
-      
+
       <div>
         <h4 class="text-white font-semibold mb-4">Product</h4>
         <ul class="space-y-2 text-sm">
-          <li><.link href="/features" class="hover:text-white">Features</.link></li>
-          <li><.link href="/pricing" class="hover:text-white">Pricing</.link></li>
-          <li><.link href="/download" class="hover:text-white">Download</.link></li>
-          <li><.link href="/docs" class="hover:text-white">Documentation</.link></li>
+          <li><.link href="/features" class="text-muted hover:text-white">Features</.link></li>
+          <li><.link href="/pricing" class="text-muted hover:text-white">Pricing</.link></li>
+          <li><.link href="/download" class="text-muted hover:text-white">Download</.link></li>
+          <li><.link href="/docs" class="text-muted hover:text-white">Documentation</.link></li>
         </ul>
       </div>
-      
+
       <div>
         <h4 class="text-white font-semibold mb-4">Support</h4>
         <ul class="space-y-2 text-sm">
-          <li><.link href="/docs" class="hover:text-white">Documentation</.link></li>
-          <li><a href="https://github.com/yourusername/goprint" class="hover:text-white">GitHub</a></li>
-          <li><a href="mailto:support@goprint.dev" class="hover:text-white">Contact Support</a></li>
+          <li><.link href="/docs" class="text-muted hover:text-white">Documentation</.link></li>
+          <li><a href="mailto:support@goprint.dev" class="text-muted hover:text-white">Contact Support</a></li>
         </ul>
       </div>
-      
+
       <div>
         <h4 class="text-white font-semibold mb-4">Legal</h4>
         <ul class="space-y-2 text-sm">
-          <li><.link href="/privacy" class="hover:text-white">Privacy Policy</.link></li>
-          <li><.link href="/terms" class="hover:text-white">Terms of Service</.link></li>
+          <li><.link href="/privacy" class="text-muted hover:text-white">Privacy Policy</.link></li>
+          <li><.link href="/terms" class="text-muted hover:text-white">Terms of Service</.link></li>
         </ul>
       </div>
     </div>
-    
-    <div class="mt-8 pt-8 border-t border-gray-800 text-center text-sm">
+
+    <div class="mt-8 pt-8 border-t border-white/10 text-center text-sm text-muted">
       <p>&copy; 2024 GoPrint. All rights reserved.</p>
     </div>
   </div>

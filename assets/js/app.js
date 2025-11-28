@@ -24,33 +24,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import {DarkMode} from "./dark_mode"
-
-// Theme selector hook for settings page
-const ThemeSelector = {
-  mounted() {
-    // Send current theme to LiveView on mount
-    const currentTheme = localStorage.getItem("theme") || "system"
-    this.pushEvent("init-theme", {theme: currentTheme})
-    
-    this.handleEvent("set-theme", ({theme}) => {
-      if (theme === "system") {
-        localStorage.removeItem("theme")
-        document.documentElement.classList.remove("dark")
-        
-        // Apply system preference
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          document.documentElement.classList.add("dark")
-        }
-      } else if (theme === "dark") {
-        localStorage.setItem("theme", "dark")
-        document.documentElement.classList.add("dark")
-      } else {
-        localStorage.setItem("theme", "light")
-        document.documentElement.classList.remove("dark")
-      }
-    })
-  }
-}
+import {Hooks as FluxonHooks} from "../../deps/fluxon/priv/static/fluxon.esm.js"
 
 // Clipboard hook for copying API keys
 const CopyButton = {
@@ -128,7 +102,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {DarkMode, ThemeSelector, CopyButton, UrlOpener},
+  hooks: {...FluxonHooks, DarkMode, CopyButton, UrlOpener},
 })
 
 // Show progress bar on live navigation and form submits
