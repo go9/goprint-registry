@@ -52,30 +52,59 @@
           <div class="w-96 p-4">
             <h2 class="text-base font-semibold text-foreground mb-4">Filter Clients</h2>
 
-            <.form for={%{}} phx-change="update-filter" class="space-y-4">
+            <%
+              # Build form values from current filters
+              filter_values = %{
+                "api_name" => Flop.Filter.get_value(@meta.flop.filters, :api_name) || "",
+                "mac_address" => Flop.Filter.get_value(@meta.flop.filters, :mac_address) || "",
+                "operating_system" => Flop.Filter.get_value(@meta.flop.filters, :operating_system) || "",
+                "status" => Flop.Filter.get_value(@meta.flop.filters, :status) || "",
+                "last_connected_start" => @meta.params["last_connected_start"] || "",
+                "last_connected_end" => @meta.params["last_connected_end"] || ""
+              }
+            %>
+
+            <.form :let={f} for={to_form(filter_values)} phx-change="update-filter" class="space-y-4">
               <.input
+                field={f[:api_name]}
                 type="text"
-                name="api_name"
                 label="Client Name"
-                value={Flop.Filter.get_value(@meta.flop.filters, :api_name) || ""}
                 placeholder="Search by name..."
               />
 
               <.input
+                field={f[:mac_address]}
                 type="text"
-                name="mac_address"
                 label="MAC Address"
-                value={Flop.Filter.get_value(@meta.flop.filters, :mac_address) || ""}
                 placeholder="Search by MAC address..."
               />
 
               <.input
+                field={f[:operating_system]}
                 type="text"
-                name="operating_system"
                 label="Operating System"
-                value={Flop.Filter.get_value(@meta.flop.filters, :operating_system) || ""}
                 placeholder="Search by OS..."
               />
+
+              <.select
+                field={f[:status]}
+                label="Status"
+                native
+                options={[{"All statuses", ""}, {"Connected", "connected"}, {"Disconnected", "disconnected"}]}
+              />
+
+              <div>
+                <label class="block text-sm font-medium text-foreground mb-1">
+                  Last Connected
+                </label>
+                <.date_range_picker
+                  start_field={f[:last_connected_start]}
+                  end_field={f[:last_connected_end]}
+                  max={Date.utc_today()}
+                  navigation="extended"
+                  placeholder="Select date range"
+                />
+              </div>
             </.form>
 
             <%= if @meta.flop.filters != [] do %>

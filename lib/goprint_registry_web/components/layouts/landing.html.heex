@@ -24,7 +24,6 @@
       </nav>
 
       <div class="flex items-center gap-4">
-        <GoprintRegistryWeb.Components.DarkModeToggle.dark_mode_toggle />
         <%= if assigns[:current_scope] && @current_scope.user do %>
           <.link href="/dashboard" class="text-muted-foreground hover:text-foreground font-medium">
             Dashboard

@@ -85,7 +85,10 @@ defmodule GoprintRegistry.MixProject do
       {:gen_smtp, "~> 1.0"},
       
       # API Documentation
-      {:open_api_spex, "~> 3.20"}
+      {:open_api_spex, "~> 3.20"},
+
+      # Dev tools
+      {:tidewave, "~> 0.5", only: :dev}
     ]
   end
 

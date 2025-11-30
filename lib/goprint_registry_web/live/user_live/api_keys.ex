@@ -21,31 +21,28 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="api-keys-page" phx-hook="UrlOpener">
-      <!-- Header section with Create button -->
-      <div class="bg-card shadow sm:rounded-lg border border-base">
-        <div class="px-4 py-5 sm:p-6">
-          <div class="sm:flex sm:items-center sm:justify-between">
-            <div>
-              <h3 class="text-lg leading-6 font-medium text-foreground">
-                API Keys
-              </h3>
-              <p class="mt-1 text-sm text-muted-foreground">
-                Manage API keys for programmatic access to the GoPrint API
-              </p>
-            </div>
-            <div class="mt-4 sm:mt-0 flex gap-2">
-              <.link href="/api/docs" target="_blank">
-                <.button type="button" variant="outline" color="info">
-                  <.icon name="hero-book-open" class="-ml-1 mr-2 h-5 w-5" />
-                  API Docs
-                </.button>
-              </.link>
-              <.button type="button" variant="solid" color="primary" phx-click="open_modal">
-                <.icon name="hero-plus" class="-ml-1 mr-2 h-5 w-5" />
-                Create New Key
-              </.button>
-            </div>
-          </div>
+      <!-- Header Section -->
+      <div class="space-y-4 mb-8">
+        <!-- API Docs Link -->
+        <div class="flex justify-start">
+          <.link href="/api/docs" target="_blank">
+            <.button type="button" variant="ghost" size="sm" color="info">
+              <.icon name="hero-book-open" class="-ml-0.5 mr-1.5 h-4 w-4" />
+              View API Documentation
+              <.icon name="hero-arrow-top-right-on-square" class="ml-1.5 h-3.5 w-3.5" />
+            </.button>
+          </.link>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="flex justify-between items-center gap-6">
+          <p class="text-sm text-muted-foreground">
+            Manage API keys for programmatic access to the GoPrint API
+          </p>
+          <.button type="button" variant="solid" color="primary" phx-click="open_modal" class="shrink-0">
+            <.icon name="hero-plus" class="-ml-1 mr-2 h-5 w-5" />
+            Create New Key
+          </.button>
         </div>
       </div>
 
@@ -67,9 +64,6 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                   Name
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Key Preview
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Created
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -86,21 +80,6 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-foreground"><%= key.name %></div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                      <code class="text-sm text-muted-foreground font-mono bg-muted px-1 py-0.5 rounded">gopr_****_<%= String.slice(to_string(key.id), -4..-1) %></code>
-                      <button
-                        type="button"
-                        id={"copy-key-#{key.id}"}
-                        phx-hook="CopyButton"
-                        data-clipboard-text={"gopr_****_#{String.slice(to_string(key.id), -4..-1)}"}
-                        title="Copy key ID"
-                        class="inline-flex items-center justify-center rounded-base text-muted-foreground hover:text-foreground hover:bg-muted transition-colors p-1"
-                      >
-                        <.icon name="hero-clipboard-document" class="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     <%= format_date(key.inserted_at) %>
                   </td>
@@ -114,29 +93,17 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
                     <% end %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div class="flex items-center justify-end gap-2">
-                      <.button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        phx-click="open_in_docs"
-                        phx-value-id={key.id}
-                        title="Open API docs with this key"
-                      >
-                        <.icon name="hero-arrow-top-right-on-square" class="h-4 w-4" />
-                      </.button>
-                      <.button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        color="danger"
-                        phx-click="revoke"
-                        phx-value-id={key.id}
-                        data-confirm="Are you sure you want to revoke this API key? This action cannot be undone."
-                      >
-                        Revoke
-                      </.button>
-                    </div>
+                    <.button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      color="danger"
+                      phx-click="revoke"
+                      phx-value-id={key.id}
+                      data-confirm="Are you sure you want to revoke this API key? This action cannot be undone."
+                    >
+                      Revoke
+                    </.button>
                   </td>
                 </tr>
               <% end %>
@@ -317,14 +284,6 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
      socket
      |> assign(:api_keys, api_keys)
      |> put_flash(:info, "API key revoked successfully.")}
-  end
-
-  def handle_event("open_in_docs", %{"id" => _id}, socket) do
-    # Since we don't store the actual token after creation, we'll inform the user
-    {:noreply,
-     socket
-     |> put_flash(:info, "Please copy your API key first, then paste it in the API docs 'Authorize' dialog.")
-     |> push_event("open-url", %{url: "/api/docs"})}
   end
 
   defp format_date(datetime) do

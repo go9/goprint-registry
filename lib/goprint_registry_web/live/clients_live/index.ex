@@ -61,8 +61,60 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
 
   @impl true
   def handle_event("update-filter", params, socket) do
-    params = Map.delete(params, "_target")
+    params =
+      params
+      |> Map.delete("_target")
+      |> convert_to_flop_filters()
+
     {:noreply, push_patch(socket, to: ~p"/clients?#{params}")}
+  end
+
+  defp convert_to_flop_filters(params) do
+    filters = []
+
+    # Convert text search filters (using ilike_and for partial matches)
+    filters =
+      ["api_name", "mac_address", "operating_system"]
+      |> Enum.reduce(filters, fn field, acc ->
+        case params[field] do
+          nil -> acc
+          "" -> acc
+          value -> acc ++ [%{"field" => field, "op" => "ilike_and", "value" => value}]
+        end
+      end)
+
+    # Convert status filter (exact match)
+    filters =
+      case params["status"] do
+        nil -> filters
+        "" -> filters
+        value -> filters ++ [%{"field" => "status", "op" => "==", "value" => value}]
+      end
+
+    # Convert date range filters
+    filters =
+      case params["last_connected_start"] do
+        nil -> filters
+        "" -> filters
+        start -> filters ++ [%{"field" => "last_connected_at", "op" => ">=", "value" => start}]
+      end
+
+    filters =
+      case params["last_connected_end"] do
+        nil -> filters
+        "" -> filters
+        end_date -> filters ++ [%{"field" => "last_connected_at", "op" => "<=", "value" => end_date}]
+      end
+
+    # Convert filters list to indexed params format
+    filters
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {filter, index}, acc ->
+      acc
+      |> Map.put("filters[#{index}][field]", filter["field"])
+      |> Map.put("filters[#{index}][op]", filter["op"])
+      |> Map.put("filters[#{index}][value]", filter["value"])
+    end)
   end
 
   @impl true

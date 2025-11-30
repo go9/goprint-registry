@@ -3,7 +3,7 @@ defmodule GoprintRegistry.Clients.Client do
   import Ecto.Changeset
   
   @derive {Flop.Schema,
-           filterable: [:api_name, :mac_address, :operating_system],
+           filterable: [:api_name, :mac_address, :operating_system, :status, :last_connected_at],
            sortable: [:api_name, :last_connected_at, :inserted_at],
            default_limit: 20}
 
