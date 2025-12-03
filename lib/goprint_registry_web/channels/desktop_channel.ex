@@ -153,7 +153,7 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   @impl true
   def terminate(_reason, socket) do
     client_id = socket.assigns.client.id
-    ConnectionManager.unregister_desktop(client_id)
+    ConnectionManager.unregister_desktop(client_id, self())
     :ok
   end
 end

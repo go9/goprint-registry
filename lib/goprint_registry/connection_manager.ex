@@ -20,8 +20,8 @@ defmodule GoprintRegistry.ConnectionManager do
     GenServer.call(__MODULE__, {:register, client_id, pid})
   end
 
-  def unregister_desktop(client_id) do
-    GenServer.cast(__MODULE__, {:unregister, client_id})
+  def unregister_desktop(client_id, pid \\ nil) do
+    GenServer.cast(__MODULE__, {:unregister, client_id, pid})
   end
 
   def heartbeat(client_id) do
@@ -148,25 +148,59 @@ defmodule GoprintRegistry.ConnectionManager do
   end
 
   @impl true
-  def handle_cast({:unregister, client_id}, state) do
-    :ets.delete(@table_name, client_id)
+  def handle_cast({:unregister, client_id, requesting_pid}, state) do
+    require Logger
 
-    # Persist disconnect and notify associated users
-    case Clients.disconnect_client(client_id) do
-      {:ok, _client} -> 
-        broadcast_to_users(client_id, {:client_disconnected, client_id})
-      error -> 
-        Logger.error("Failed to update client #{client_id} disconnect status: #{inspect(error)}")
-        :ok
+    # Only unregister if the requesting PID matches the current connection,
+    # or if no PID was provided (for backwards compatibility)
+    should_unregister = case :ets.lookup(@table_name, client_id) do
+      [] ->
+        # No entry found, nothing to do
+        false
+      [{^client_id, %{pid: current_pid}}] ->
+        cond do
+          requesting_pid == nil ->
+            # No PID provided, proceed (legacy behavior)
+            true
+          requesting_pid == current_pid ->
+            # PID matches, safe to unregister
+            true
+          true ->
+            # PID doesn't match - a newer connection exists
+            Logger.info("ConnectionManager: Ignoring stale unregister (already reconnected)",
+              client_id: client_id,
+              requesting_pid: inspect(requesting_pid),
+              current_pid: inspect(current_pid)
+            )
+            false
+        end
     end
-    
-    # Remove from state
-    state = Enum.reduce(state, %{}, fn
-      {_pid, cid}, acc when cid == client_id -> acc
-      {pid, cid}, acc -> Map.put(acc, pid, cid)
-    end)
-    
-    {:noreply, state}
+
+    if should_unregister do
+      :ets.delete(@table_name, client_id)
+
+      # Persist disconnect and notify associated users
+      case Clients.disconnect_client(client_id) do
+        {:ok, _client} ->
+          broadcast_to_users(client_id, {:client_disconnected, client_id})
+        error ->
+          Logger.error("Failed to update client #{client_id} disconnect status: #{inspect(error)}")
+          :ok
+      end
+    end
+
+    # Remove the requesting PID from state (if it's there)
+    new_state = if requesting_pid do
+      Map.delete(state, requesting_pid)
+    else
+      # Legacy: remove all entries for this client_id
+      Enum.reduce(state, %{}, fn
+        {_pid, cid}, acc when cid == client_id -> acc
+        {pid, cid}, acc -> Map.put(acc, pid, cid)
+      end)
+    end
+
+    {:noreply, new_state}
   end
 
   @impl true
@@ -250,19 +284,33 @@ defmodule GoprintRegistry.ConnectionManager do
     require Logger
     # Process died, remove from registry
     case Map.get(state, pid) do
-      nil -> 
+      nil ->
         {:noreply, state}
       client_id ->
-        Logger.warning("ConnectionManager: Client disconnected", 
-          client_id: client_id,
-          pid: inspect(pid),
-          reason: inspect(reason)
-        )
-        :ets.delete(@table_name, client_id)
-        # Persist disconnect and notify associated users
-        case Clients.disconnect_client(client_id) do
-          {:ok, _} -> broadcast_to_users(client_id, {:client_disconnected, client_id})
-          _ -> :ok
+        # IMPORTANT: Only delete from ETS if the current entry still points to this PID.
+        # This prevents a race condition where a new connection overwrites the old one
+        # in ETS, but the old connection's :DOWN message arrives later and incorrectly
+        # deletes the new connection's entry.
+        case :ets.lookup(@table_name, client_id) do
+          [{^client_id, %{pid: ^pid}}] ->
+            # The ETS entry still points to this dying PID, safe to delete
+            Logger.warning("ConnectionManager: Client disconnected",
+              client_id: client_id,
+              pid: inspect(pid),
+              reason: inspect(reason)
+            )
+            :ets.delete(@table_name, client_id)
+            # Persist disconnect and notify associated users
+            case Clients.disconnect_client(client_id) do
+              {:ok, _} -> broadcast_to_users(client_id, {:client_disconnected, client_id})
+              _ -> :ok
+            end
+          _ ->
+            # ETS entry was already overwritten by a newer connection, don't delete it
+            Logger.info("ConnectionManager: Ignoring stale :DOWN for client (already reconnected)",
+              client_id: client_id,
+              old_pid: inspect(pid)
+            )
         end
         {:noreply, Map.delete(state, pid)}
     end
