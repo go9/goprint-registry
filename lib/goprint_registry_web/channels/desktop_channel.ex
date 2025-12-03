@@ -130,23 +130,40 @@ defmodule GoprintRegistryWeb.DesktopChannel do
   end
 
   @impl true
-  def handle_info({:print_job, job}, socket) do
-    # Forward print job to desktop client
+  def handle_info({:print_job, job, delivery_id}, socket) do
+    # Forward print job to desktop client with delivery confirmation
     require Logger
-    Logger.info("DesktopChannel: Forwarding print job to desktop client", 
-      job_id: job[:job_id], 
+    Logger.info("DesktopChannel: Forwarding print job to desktop client",
+      job_id: job[:job_id],
       client_id: socket.assigns[:client_id] || socket.assigns[:client][:id],
       printer_id: job[:printer_id],
+      delivery_id: delivery_id,
       socket_pid: inspect(self())
     )
-    
+
     result = push(socket, "print_job", job)
-    
-    Logger.info("DesktopChannel: Push result", 
+
+    Logger.info("DesktopChannel: Push result",
       result: inspect(result),
+      job_id: job[:job_id],
+      delivery_id: delivery_id
+    )
+
+    # Send acknowledgment back to ConnectionManager
+    send(ConnectionManager, {:job_delivered, delivery_id})
+
+    {:noreply, socket}
+  end
+
+  # Keep backwards compatibility for any code still using the old format
+  @impl true
+  def handle_info({:print_job, job}, socket) do
+    require Logger
+    Logger.warning("DesktopChannel: Received print job without delivery_id (legacy format)",
       job_id: job[:job_id]
     )
-    
+
+    push(socket, "print_job", job)
     {:noreply, socket}
   end
 

@@ -54,19 +54,10 @@ defmodule GoprintRegistry.ConnectionManager do
     :ets.tab2list(@table_name)
   end
 
+  @job_delivery_timeout 5_000  # 5 seconds to acknowledge job receipt
+
   def send_print_job(client_id, job) do
-    require Logger
-    Logger.info("ConnectionManager: Attempting to send print job", client_id: client_id, job_id: job[:job_id])
-    
-    case get_client(client_id) do
-      {:ok, %{pid: pid}} ->
-        Logger.info("ConnectionManager: Client found, sending job to pid", pid: inspect(pid))
-        send(pid, {:print_job, job})
-        :ok
-      {:error, reason} ->
-        Logger.warning("ConnectionManager: Client not found", client_id: client_id, reason: reason)
-        {:error, "Desktop client not connected"}
-    end
+    GenServer.call(__MODULE__, {:send_print_job, client_id, job}, @job_delivery_timeout + 1_000)
   end
 
   def request_printers(client_id, timeout \\ 5000) do
@@ -125,23 +116,55 @@ defmodule GoprintRegistry.ConnectionManager do
   end
 
   @impl true
+  def handle_call({:send_print_job, client_id, job}, from, state) do
+    require Logger
+    Logger.info("ConnectionManager: Attempting to send print job", client_id: client_id, job_id: job[:job_id])
+
+    case get_client(client_id) do
+      {:ok, %{pid: pid}} ->
+        # Generate a unique delivery ID for acknowledgment
+        delivery_id = :erlang.unique_integer([:positive, :monotonic])
+
+        Logger.info("ConnectionManager: Client found, sending job with delivery confirmation",
+          pid: inspect(pid),
+          delivery_id: delivery_id
+        )
+
+        # Store the pending delivery
+        new_state = Map.put(state, {:job_delivery, delivery_id}, {from, job[:job_id], :os.system_time(:millisecond)})
+
+        # Send job to channel process with delivery_id for acknowledgment
+        send(pid, {:print_job, job, delivery_id})
+
+        # Set a timeout for acknowledgment
+        Process.send_after(self(), {:job_delivery_timeout, delivery_id}, @job_delivery_timeout)
+
+        {:noreply, new_state}
+
+      {:error, reason} ->
+        Logger.warning("ConnectionManager: Client not found", client_id: client_id, reason: reason)
+        {:reply, {:error, "Desktop client not connected"}, state}
+    end
+  end
+
+  @impl true
   def handle_call({:request_printers, client_id, timeout}, from, state) do
     case get_client(client_id) do
       {:ok, %{pid: pid}} ->
         # Generate a unique request ID
         request_id = :erlang.unique_integer([:positive, :monotonic])
-        
+
         # Store the pending request
         new_state = Map.put(state, {:printer_request, request_id}, {from, :os.system_time(:millisecond)})
-        
+
         # Send request to desktop client with request_id
         send(pid, {:request_printers, request_id})
-        
+
         # Set a timeout to cleanup if no response
         Process.send_after(self(), {:printer_request_timeout, request_id}, timeout)
-        
+
         {:noreply, new_state}
-        
+
       {:error, _} ->
         {:reply, {:error, :not_connected}, state}
     end
@@ -275,6 +298,39 @@ defmodule GoprintRegistry.ConnectionManager do
         {:noreply, Map.delete(state, {:printer_request, request_id})}
       nil ->
         # Already handled
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info({:job_delivered, delivery_id}, state) do
+    require Logger
+    case Map.get(state, {:job_delivery, delivery_id}) do
+      {from, job_id, _timestamp} ->
+        Logger.info("ConnectionManager: Job delivery confirmed", delivery_id: delivery_id, job_id: job_id)
+        # Reply success to the waiting caller
+        GenServer.reply(from, :ok)
+        # Clean up the pending delivery
+        {:noreply, Map.delete(state, {:job_delivery, delivery_id})}
+      nil ->
+        # Already timed out or doesn't exist
+        Logger.warning("ConnectionManager: Received ack for unknown delivery", delivery_id: delivery_id)
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info({:job_delivery_timeout, delivery_id}, state) do
+    require Logger
+    case Map.get(state, {:job_delivery, delivery_id}) do
+      {from, job_id, _timestamp} ->
+        Logger.error("ConnectionManager: Job delivery timed out", delivery_id: delivery_id, job_id: job_id)
+        # Reply with timeout error
+        GenServer.reply(from, {:error, "Job delivery timed out - desktop may be unresponsive"})
+        # Clean up the pending delivery
+        {:noreply, Map.delete(state, {:job_delivery, delivery_id})}
+      nil ->
+        # Already acknowledged
         {:noreply, state}
     end
   end

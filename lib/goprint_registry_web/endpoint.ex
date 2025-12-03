@@ -25,6 +25,11 @@ defmodule GoprintRegistryWeb.Endpoint do
     ],
     longpoll: false
 
+  # Tidewave must run before any other plugs that might read the request body
+  if code_reloading? do
+    plug Tidewave
+  end
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),
@@ -42,7 +47,6 @@ defmodule GoprintRegistryWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
-    plug Tidewave
   end
 
   plug Plug.RequestId
