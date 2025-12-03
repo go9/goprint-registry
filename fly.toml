@@ -8,6 +8,10 @@ primary_region = 'sjc'
 kill_signal = 'SIGTERM'
 
 [build]
+  build-target = ""
+
+  [build.secrets]
+    FLUXON_LICENSE_KEY = "FLUXON_LICENSE_KEY"
 
 [env]
   PHX_HOST = 'goprint.dev'
@@ -16,9 +20,9 @@ kill_signal = 'SIGTERM'
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
   [http_service.concurrency]

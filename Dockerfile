@@ -20,9 +20,11 @@ ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-# install build dependencies
+# install build dependencies (including Node.js for CSS build)
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential git \
+  && apt-get install -y --no-install-recommends build-essential git curl \
+  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
 # prepare build dir
@@ -61,7 +63,13 @@ RUN mix compile
 
 COPY assets assets
 
-# compile assets
+# Create assets directory for CSS output (excluded by .dockerignore)
+RUN mkdir -p /app/priv/static/assets
+
+# Install npm dependencies and build CSS with PostCSS/Tailwind v4
+RUN cd assets && npm install && npm run deploy
+
+# compile JS assets with esbuild
 RUN mix assets.deploy
 
 # Changes to config/runtime.exs don't require recompiling the code

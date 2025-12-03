@@ -104,10 +104,10 @@ defmodule GoprintRegistry.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind goprint_registry", "esbuild goprint_registry"],
+      # CSS is built via npm/postcss (Tailwind v4), JS via esbuild
+      "assets.setup": ["esbuild.install --if-missing"],
+      "assets.build": ["esbuild goprint_registry"],
       "assets.deploy": [
-        "tailwind goprint_registry --minify",
         "esbuild goprint_registry --minify",
         "phx.digest"
       ],
