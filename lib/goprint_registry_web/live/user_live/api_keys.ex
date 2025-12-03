@@ -20,7 +20,7 @@ defmodule GoprintRegistryWeb.UserLive.ApiKeys do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="api-keys-page" phx-hook="UrlOpener">
+    <div class="px-4 sm:px-6 lg:px-8 py-8" id="api-keys-page" phx-hook="UrlOpener">
       <!-- Header Section -->
       <div class="space-y-4 mb-8">
         <!-- API Docs Link -->

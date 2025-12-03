@@ -6,13 +6,11 @@ defmodule GoprintRegistryWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-card shadow sm:rounded-lg border border-base">
-        <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-foreground">
-            Account Settings
-          </h3>
-          <p class="mt-1 text-sm text-muted-foreground">
+    <div class="px-4 sm:px-6 lg:px-8 py-8">
+      <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+          <h1 class="text-2xl font-semibold text-foreground">Settings</h1>
+          <p class="mt-2 text-sm text-muted-foreground">
             Manage your account email address and password settings
           </p>
         </div>
