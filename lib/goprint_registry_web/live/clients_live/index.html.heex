@@ -55,6 +55,7 @@
             <%
               # Build form values from current filters
               filter_values = %{
+                "id" => Flop.Filter.get_value(@meta.flop.filters, :id) || "",
                 "api_name" => Flop.Filter.get_value(@meta.flop.filters, :api_name) || "",
                 "mac_address" => Flop.Filter.get_value(@meta.flop.filters, :mac_address) || "",
                 "operating_system" => Flop.Filter.get_value(@meta.flop.filters, :operating_system) || "",
@@ -66,10 +67,19 @@
 
             <.form :let={f} for={to_form(filter_values)} phx-change="update-filter" class="space-y-4">
               <.input
+                field={f[:id]}
+                type="text"
+                label="Client ID"
+                placeholder="Search by client ID..."
+                phx-debounce="blur"
+              />
+
+              <.input
                 field={f[:api_name]}
                 type="text"
                 label="Client Name"
                 placeholder="Search by name..."
+                phx-debounce="blur"
               />
 
               <.input
@@ -77,6 +87,7 @@
                 type="text"
                 label="MAC Address"
                 placeholder="Search by MAC address..."
+                phx-debounce="blur"
               />
 
               <.input
@@ -84,6 +95,7 @@
                 type="text"
                 label="Operating System"
                 placeholder="Search by OS..."
+                phx-debounce="blur"
               />
 
               <.select
@@ -171,9 +183,6 @@
                   Status
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
-                  Printers
-                </th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
                   IP Addresses
                 </th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
@@ -197,8 +206,8 @@
             </thead>
             <tbody class="divide-y divide-base bg-card" phx-update="stream" id="clients">
               <tr :for={{id, client} <- @streams.clients} id={id}>
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
-                  <span class="font-mono text-xs"><%= String.slice(client.id, 0..7) %>...</span>
+                <td class="py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
+                  <span class="font-mono text-xs break-all"><%= client.id %></span>
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                   <%= client.api_name || "-" %>
@@ -213,9 +222,6 @@
                   <.badge :if={client.status != "connected"} color="info">
                     Disconnected
                   </.badge>
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  <span class="text-muted-foreground">-</span>
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
                   <%= case client.ip_addresses do %>

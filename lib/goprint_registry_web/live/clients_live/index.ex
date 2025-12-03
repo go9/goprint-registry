@@ -74,7 +74,7 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
 
     # Convert text search filters (using ilike_and for partial matches)
     filters =
-      ["api_name", "mac_address", "operating_system"]
+      ["id", "api_name", "mac_address", "operating_system"]
       |> Enum.reduce(filters, fn field, acc ->
         case params[field] do
           nil -> acc
@@ -197,12 +197,19 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
         users: Clients.get_client_users(client_id)
       }
 
-      # Don't auto-fetch, just show existing printers
-      {:noreply,
-       socket
-       |> assign(:show_client_modal, true)
-       |> assign(:client_details, client_with_details)
-       |> assign(:fetching_printers, false)}
+      # Show modal immediately
+      socket =
+        socket
+        |> assign(:show_client_modal, true)
+        |> assign(:client_details, client_with_details)
+
+      # Auto-fetch printers if client is connected
+      if client.status == "connected" do
+        send(self(), {:fetch_printers_for_modal, client_id})
+        {:noreply, assign(socket, :fetching_printers, true)}
+      else
+        {:noreply, assign(socket, :fetching_printers, false)}
+      end
     else
       {:noreply, socket}
     end
@@ -446,6 +453,34 @@ defmodule GoprintRegistryWeb.ClientsLive.Index do
   def handle_info({:client_disconnected, _client_id}, socket) do
     # Refresh the list instead of updating individual client
     {:noreply, push_patch(socket, to: current_path_with_params(socket))}
+  end
+
+  @impl true
+  def handle_info({:fetch_printers_for_modal, client_id}, socket) do
+    require Logger
+    Logger.debug("Auto-fetching printers for modal: #{client_id}")
+
+    case ConnectionManager.request_printers(client_id) do
+      {:ok, printers} ->
+        Logger.debug("Auto-fetch: received #{length(printers)} printers for client #{client_id}")
+
+        client_details =
+          if socket.assigns.client_details && socket.assigns.client_details.id == client_id do
+            Map.put(socket.assigns.client_details, :printers, printers)
+          else
+            socket.assigns.client_details
+          end
+
+        {:noreply,
+         socket
+         |> assign(:client_details, client_details)
+         |> assign(:fetching_printers, false)}
+
+      {:error, reason} ->
+        Logger.warning("Auto-fetch printers failed for #{client_id}: #{inspect(reason)}")
+
+        {:noreply, assign(socket, :fetching_printers, false)}
+    end
   end
 
   @impl true
